@@ -9,8 +9,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.example.plugin2.Plugin2;
 import org.example.plugin2.world.HubWorldManager;
@@ -138,6 +140,31 @@ public class HubRulesListener implements Listener {
     public void onWeatherChange(WeatherChangeEvent event) {
         if (!hubWorldManager.isHubWorld(event.getWorld())) return;
         if (config().getBoolean("monde.meteo-bloquee", true) && event.toWeatherState()) {
+            event.setCancelled(true);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Items au sol (drop / pickup)
+    // ---------------------------------------------------------------
+    // Empêche tout item de traîner ou d'être récupéré dans le hub : pas de
+    // drop volontaire (touche Q) et pas de ramassage d'un item déjà au sol
+    // (drop d'un autre joueur, item issu d'un coffre cassé avant la règle
+    // anti-casse, etc.). La boussole du hub a déjà sa propre protection
+    // anti-drop dans CompassListener — ce handler couvre tous les autres items.
+
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!hubWorldManager.isHubWorld(event.getPlayer().getWorld())) return;
+        if (config().getBoolean("monde-fige.drop-item-interdit", true)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPickupItem(PlayerPickupItemEvent event) {
+        if (!hubWorldManager.isHubWorld(event.getPlayer().getWorld())) return;
+        if (config().getBoolean("monde-fige.pickup-item-interdit", true)) {
             event.setCancelled(true);
         }
     }

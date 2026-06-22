@@ -26,6 +26,17 @@ monde-fige:
   casse-bloc-interdite: true     # empêche de casser le moindre bloc
   pose-bloc-interdite: true      # empêche de poser le moindre bloc
   interaction-bloquee: false     # si true, bloque aussi l'interaction avec portes/leviers/coffres
+  drop-item-interdit: true       # empêche de jeter un item au sol (touche Q) dans le hub
+  pickup-item-interdit: true     # empêche de ramasser un item déjà au sol dans le hub
+
+# Saut payant via clic gauche avec la boussole du hub en main.
+# Coûte "prix" tals à chaque utilisation, propulse le joueur vers le haut
+# avec un son et des particules, et respecte un cooldown anti-spam.
+saut:
+  active: true
+  prix: 10.0
+  puissance: 1.6           # force verticale appliquée (1.6 ≈ un saut nettement plus haut qu'un saut normal)
+  cooldown-secondes: 2.0    # délai minimum entre deux sauts payants pour un même joueur
 
 # Point de spawn du hub. Modifiable ici à la main, OU via la commande
 # en jeu "/hub setspawn" (admin) qui écrit directement ces valeurs.
@@ -38,5 +49,5 @@ spawn:
   yaw: 0.0
   pitch: 0.0
   rayon-aleatoire: 3.0   # en blocs. 0 = spawn toujours au même point exact.
-    # >0 = tire un point aléatoire dans ce rayon autour du centre,
+  # >0 = tire un point aléatoire dans ce rayon autour du centre,
   # et recherche automatiquement le sol pour éviter de spawn dans le vide/un bloc.

@@ -1,9 +1,13 @@
 package org.example.plugin2.listeners;
 
+import io.papermc.paper.event.player.PlayerArmSwingEvent;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,14 +20,21 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Vector;
 import org.example.plugin2.Plugin2;
+import org.example.plugin2.economy.EconomyManager;
 import org.example.plugin2.messages.MessagesManager;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Gère la boussole spéciale du hub :
  * - donnée automatiquement à la connexion (et à la réapparition)
  * - impossible à drop
  * - ouvre le HubMenu au clic droit
+ * - clic gauche = saut payant (voir onArmSwing)
  *
  * On marque l'item avec une PersistentDataTag pour le reconnaître de façon fiable
  * (plutôt que de se baser uniquement sur le Material, au cas où le joueur ait
@@ -35,10 +46,15 @@ public class CompassListener implements Listener {
 
     private final Plugin2 plugin;
     private final MessagesManager messages;
+    private final EconomyManager economy;
+
+    // Anti-spam : timestamp (millis) du dernier saut payant par joueur.
+    private final Map<UUID, Long> derniersSauts = new HashMap<>();
 
     public CompassListener(Plugin2 plugin) {
         this.plugin = plugin;
         this.messages = plugin.getMessagesManager();
+        this.economy = plugin.getEconomyManager();
     }
 
     /** Construit l'ItemStack de la boussole du hub, marqué et nommé. */
@@ -110,5 +126,57 @@ public class CompassListener implements Listener {
             event.setCancelled(true); // empêche d'ouvrir une boussole "lodestone" classique ou autre comportement
             plugin.getHubMenu().open(event.getPlayer());
         }
+    }
+
+    // ---------------------------------------------------------------
+    // Saut payant (clic gauche avec la boussole en main)
+    // ---------------------------------------------------------------
+    // PlayerArmSwingEvent (Paper) se déclenche au clic gauche que le joueur
+    // vise du vide, un bloc ou une entité — contrairement à PlayerInteractEvent
+    // qui n'existe pas pour un clic gauche dans le vide côté API Bukkit standard.
+
+    @EventHandler
+    public void onArmSwing(PlayerArmSwingEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (!isHubCompass(item)) return;
+
+        var config = plugin.getHubWorldManager().getConfig();
+        if (!config.getBoolean("saut.active", true)) return;
+        if (!plugin.getHubWorldManager().isHubWorld(player.getWorld())) return;
+
+        double prix = config.getDouble("saut.prix", 10.0);
+        long cooldownMs = (long) (config.getDouble("saut.cooldown-secondes", 2.0) * 1000);
+
+        long maintenant = System.currentTimeMillis();
+        Long dernier = derniersSauts.get(player.getUniqueId());
+        if (dernier != null && (maintenant - dernier) < cooldownMs) {
+            return; // encore en cooldown, on ignore silencieusement (pas de spam de messages)
+        }
+
+        if (!economy.has(player.getUniqueId(), prix)) {
+            messages.send(player, "saut.solde-insuffisant", Map.of("prix", String.valueOf((int) prix)));
+            return;
+        }
+
+        economy.removeBalance(player.getUniqueId(), prix);
+        derniersSauts.put(player.getUniqueId(), maintenant);
+
+        performJump(player, config);
+        messages.send(player, "saut.effectue", Map.of("prix", String.valueOf((int) prix)));
+    }
+
+    /** Applique l'impulsion verticale et joue le son + les particules autour du joueur. */
+    private void performJump(Player player, org.bukkit.configuration.file.YamlConfiguration config) {
+        double puissance = config.getDouble("saut.puissance", 1.6);
+
+        Vector velocity = player.getVelocity();
+        velocity.setY(puissance);
+        player.setVelocity(velocity);
+
+        Location loc = player.getLocation();
+        player.getWorld().playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.6f, 1.4f);
+        player.getWorld().spawnParticle(Particle.CLOUD, loc.clone().add(0, 0.1, 0), 30, 0.4, 0.1, 0.4, 0.02);
+        player.getWorld().spawnParticle(Particle.END_ROD, loc.clone().add(0, 0.5, 0), 12, 0.3, 0.3, 0.3, 0.05);
     }
 }

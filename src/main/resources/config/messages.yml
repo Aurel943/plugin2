@@ -57,6 +57,10 @@ compass:
   recu: "&b&l✦ &bTu as reçu ta boussole du hub ! Clique-droit pour ouvrir le menu."
   drop-interdit: "&cTu ne peux pas jeter cet objet."
 
+saut:
+  effectue: "&b&l↑ &bSaut propulsé ! &7(-{prix} tals)"
+  solde-insuffisant: "&c&l✗ &cTu n'as pas assez de tals pour sauter (&6{prix} tals &crequis)."
+
 hub-menu:
   titre: "&8&lMenu du Hub"
   bouton-teleport: "&b&lTéléportation"

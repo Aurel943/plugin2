@@ -1,7 +1,6 @@
 package org.example.plugin2.menus;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -57,8 +56,10 @@ public class TeleportMenu implements Listener {
 
         switch (clicked.getType()) {
             case GRASS_BLOCK -> {
-                Location spawn = player.getWorld().getSpawnLocation();
-                player.teleport(spawn);
+                // Utilise le spawn custom configuré dans hub-rules.yml (modifiable via /hub setspawn),
+                // avec recherche automatique d'un sol sûr — évite de téléporter le joueur dans le sol
+                // comme le faisait l'ancien player.getWorld().getSpawnLocation().
+                plugin.getHubWorldManager().teleportToHub(player);
                 player.closeInventory();
             }
             case ARROW -> plugin.getHubMenu().open(player);
