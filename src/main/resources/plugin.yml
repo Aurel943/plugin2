@@ -20,4 +20,4 @@ commands:
 permissions:
   plugin2.admin:
     description: Donne accès aux commandes admin de l'économie (give, take, set, reset)
-    default: opv
+    default: op
