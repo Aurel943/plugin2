@@ -53,6 +53,7 @@ public class Database {
             stmt.execute(sql);
         }
         createPetsTable();
+        createUpgradesTable();
     }
 
     private void createPetsTable() throws SQLException {
@@ -64,6 +65,23 @@ public class Database {
                 pet_id TEXT NOT NULL,
                 equipped INTEGER NOT NULL DEFAULT 0,
                 PRIMARY KEY (uuid, pet_id)
+            );
+            """;
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
+    private void createUpgradesTable() throws SQLException {
+        // Une ligne par "amélioration" achetée une fois pour toutes par un joueur
+        // (ex: "super-saut"). Acheter = simple INSERT ; posséder = simple SELECT.
+        // Contrairement aux pets, il n'y a pas de notion d'équiper/déséquiper :
+        // un upgrade acheté reste actif pour la vie.
+        String sql = """
+            CREATE TABLE IF NOT EXISTS upgrades (
+                uuid TEXT NOT NULL,
+                upgrade_id TEXT NOT NULL,
+                PRIMARY KEY (uuid, upgrade_id)
             );
             """;
         try (Statement stmt = connection.createStatement()) {
@@ -220,6 +238,61 @@ public class Database {
             ps.executeUpdate();
         } catch (SQLException e) {
             logger.severe("Erreur lors de la sélection du pet équipé : " + e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Améliorations achetées une fois pour toutes (ex: super-saut)
+    // ---------------------------------------------------------------
+
+    /**
+     * Vrai si le joueur a déjà acheté cette amélioration (achat permanent,
+     * valable pour la vie — pas de notion d'expiration ou d'équipement).
+     */
+    public boolean hasUpgrade(UUID uuid, String upgradeId) {
+        String sql = "SELECT 1 FROM upgrades WHERE uuid = ? AND upgrade_id = ? LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, upgradeId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture d'une amélioration : " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Retourne l'ensemble des ids d'améliorations possédées par un joueur,
+     * en une seule requête (utilisé pour peupler le cache d'UpgradeManager).
+     */
+    public java.util.Set<String> getOwnedUpgrades(UUID uuid) {
+        java.util.Set<String> result = new java.util.HashSet<>();
+        String sql = "SELECT upgrade_id FROM upgrades WHERE uuid = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(rs.getString("upgrade_id"));
+            }
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture des améliorations possédées : " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Enregistre l'achat définitif d'une amélioration pour ce joueur.
+     * Ne fait rien si l'achat existe déjà (clé primaire uuid+upgrade_id).
+     */
+    public void grantUpgrade(UUID uuid, String upgradeId) {
+        String sql = "INSERT OR IGNORE INTO upgrades (uuid, upgrade_id) VALUES (?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, upgradeId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de l'attribution d'une amélioration : " + e.getMessage());
         }
     }
 

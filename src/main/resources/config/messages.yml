@@ -57,17 +57,31 @@ compass:
   recu: "&b&l✦ &bTu as reçu ta boussole du hub ! Clique-droit pour ouvrir le menu."
   drop-interdit: "&cTu ne peux pas jeter cet objet."
 
-saut:
-  effectue: "&b&l↑ &bSaut propulsé ! &7(-{prix} tals)"
-  solde-insuffisant: "&c&l✗ &cTu n'as pas assez de tals pour sauter (&6{prix} tals &crequis)."
+super-saut:
+  effectue: "&b&l↑ &bSuper saut !"
 
 hub-menu:
   titre: "&8&lMenu du Hub"
   bouton-teleport: "&b&lTéléportation"
   bouton-teleport-lore: "&7Voyage rapide vers le spawn,&7les mines, l'arène..."
+  bouton-ameliorations: "&d&lAméliorations"
+  bouton-ameliorations-lore: "&7Achète des améliorations&7permanentes pour la vie !"
   bouton-pets: "&d&lFamiliers"
   bouton-pets-lore: "&7Achète et équipe&7tes animaux de compagnie !"
   bouton-fermer: "&c&lFermer"
+
+upgrade-shop:
+  titre: "&8&lBoutique d'Améliorations"
+  retour: "&7&lMenu précédent"
+  super-saut:
+    nom: "&b&lSuper Saut"
+    lore-description: "&7Double-tap espace pour bondir&7plus haut et plus loin !"
+    lore-prix: "&7Prix : &6{prix} tals &7(achat unique, à vie)"
+    lore-cliquer-acheter: "&eClique pour acheter"
+    lore-possede: "&a&l✓ Déjà possédé &7— actif à vie"
+    deja-possede: "&7Tu possèdes déjà cette amélioration."
+    solde-insuffisant: "&c&l✗ &cTu n'as pas assez de tals (&6{prix} tals &crequis)."
+    achat-reussi: "&a&l✓ &aTu as débloqué le &bSuper Saut&a, pour la vie ! &7Double-tap espace pour l'utiliser."
 
 teleport-menu:
   titre: "&8&lTéléportation"

@@ -41,6 +41,10 @@ public class HubMenu implements Listener {
                 messages.get("hub-menu.bouton-teleport"),
                 List.of(messages.get("hub-menu.bouton-teleport-lore"))));
 
+        inv.setItem(13, buildItem(Material.NETHER_STAR,
+                messages.get("hub-menu.bouton-ameliorations"),
+                List.of(messages.get("hub-menu.bouton-ameliorations-lore"))));
+
         inv.setItem(15, buildItem(Material.BONE,
                 messages.get("hub-menu.bouton-pets"),
                 List.of(messages.get("hub-menu.bouton-pets-lore"))));
@@ -67,6 +71,7 @@ public class HubMenu implements Listener {
 
         switch (clicked.getType()) {
             case ENDER_PEARL -> plugin.getTeleportMenu().open(player);
+            case NETHER_STAR -> plugin.getUpgradeShopMenu().open(player);
             case BONE -> plugin.getPetsMenu().open(player);
             case BARRIER -> player.closeInventory();
             default -> { /* rien */ }

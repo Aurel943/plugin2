@@ -9,12 +9,15 @@ import org.example.plugin2.commands.CoinsCommand;
 import org.example.plugin2.commands.HubCommand;
 import org.example.plugin2.economy.Database;
 import org.example.plugin2.economy.EconomyManager;
+import org.example.plugin2.economy.UpgradeManager;
 import org.example.plugin2.listeners.CompassListener;
 import org.example.plugin2.listeners.HubRulesListener;
+import org.example.plugin2.listeners.SuperSautListener;
 import org.example.plugin2.listeners.WelcomeListener;
 import org.example.plugin2.menus.HubMenu;
 import org.example.plugin2.menus.PetsMenu;
 import org.example.plugin2.menus.TeleportMenu;
+import org.example.plugin2.menus.UpgradeShopMenu;
 import org.example.plugin2.messages.MessagesManager;
 import org.example.plugin2.pets.PetManager;
 import org.example.plugin2.world.HubWorldManager;
@@ -26,12 +29,14 @@ public class Plugin2 extends JavaPlugin {
 
     private Database database;
     private EconomyManager economyManager;
+    private UpgradeManager upgradeManager;
     private MessagesManager messagesManager;
     private PetManager petManager;
 
     private HubMenu hubMenu;
     private TeleportMenu teleportMenu;
     private PetsMenu petsMenu;
+    private UpgradeShopMenu upgradeShopMenu;
     private CompassListener compassListener;
     private HubWorldManager hubWorldManager;
 
@@ -48,6 +53,7 @@ public class Plugin2 extends JavaPlugin {
         database = new Database(getDataFolder(), getLogger());
         database.connect();
         economyManager = new EconomyManager(database);
+        upgradeManager = new UpgradeManager(database);
 
         // Managers de contenu paramétrable
         messagesManager = new MessagesManager(this);
@@ -61,6 +67,7 @@ public class Plugin2 extends JavaPlugin {
         hubMenu = new HubMenu(this);
         teleportMenu = new TeleportMenu(this);
         petsMenu = new PetsMenu(this);
+        upgradeShopMenu = new UpgradeShopMenu(this);
         compassListener = new CompassListener(this);
 
         // Enregistrement des listeners
@@ -68,9 +75,11 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(hubMenu, this);
         getServer().getPluginManager().registerEvents(teleportMenu, this);
         getServer().getPluginManager().registerEvents(petsMenu, this);
+        getServer().getPluginManager().registerEvents(upgradeShopMenu, this);
         getServer().getPluginManager().registerEvents(compassListener, this);
         getServer().getPluginManager().registerEvents(new PetSessionListener(), this);
         getServer().getPluginManager().registerEvents(new HubRulesListener(this, hubWorldManager), this);
+        getServer().getPluginManager().registerEvents(new SuperSautListener(this), this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
@@ -100,6 +109,10 @@ public class Plugin2 extends JavaPlugin {
         return economyManager;
     }
 
+    public UpgradeManager getUpgradeManager() {
+        return upgradeManager;
+    }
+
     public MessagesManager getMessagesManager() {
         return messagesManager;
     }
@@ -118,6 +131,10 @@ public class Plugin2 extends JavaPlugin {
 
     public PetsMenu getPetsMenu() {
         return petsMenu;
+    }
+
+    public UpgradeShopMenu getUpgradeShopMenu() {
+        return upgradeShopMenu;
     }
 
     public HubWorldManager getHubWorldManager() {

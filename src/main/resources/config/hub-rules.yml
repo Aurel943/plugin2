@@ -29,14 +29,18 @@ monde-fige:
   drop-item-interdit: true       # empêche de jeter un item au sol (touche Q) dans le hub
   pickup-item-interdit: true     # empêche de ramasser un item déjà au sol dans le hub
 
-# Saut payant via clic gauche avec la boussole du hub en main.
-# Coûte "prix" tals à chaque utilisation, propulse le joueur vers le haut
-# avec un son et des particules, et respecte un cooldown anti-spam.
-saut:
+# Super saut : amélioration achetée UNE SEULE FOIS (voir "prix" ci-dessous),
+# valable ensuite à vie. Une fois acheté, le joueur déclenche le super saut
+# en appuyant deux fois rapidement sur espace (double-tap) — aucune boussole
+# ni aucun coût à l'usage n'est nécessaire après l'achat initial.
+# L'achat se fait dans le menu du hub (boussole > Améliorations).
+super-saut:
   active: true
-  prix: 10.0
-  puissance: 1.6           # force verticale appliquée (1.6 ≈ un saut nettement plus haut qu'un saut normal)
-  cooldown-secondes: 2.0    # délai minimum entre deux sauts payants pour un même joueur
+  prix: 250.0                      # coût en tals de l'achat unique, payé une seule fois pour la vie
+  puissance-verticale: 1.2          # force verticale (plus faible que l'ancien saut payant par usage)
+  puissance-horizontale: 1.0        # force horizontale, dans la direction où le joueur regarde
+  fenetre-double-tap-secondes: 0.4  # délai max entre les deux appuis sur espace pour compter comme un double-tap
+  cooldown-secondes: 1.5            # délai minimum entre deux super sauts déclenchés
 
 # Point de spawn du hub. Modifiable ici à la main, OU via la commande
 # en jeu "/hub setspawn" (admin) qui écrit directement ces valeurs.
