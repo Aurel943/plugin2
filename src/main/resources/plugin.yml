@@ -1,0 +1,24 @@
+name: Plugin2
+version: '1.0'
+main: org.example.plugin2.Plugin2
+api-version: '1.21'
+author: Aurelien
+description: Système d'économie avec les tals
+
+commands:
+  bonjour:
+    description: Dit bonjour au joueur
+    usage: /bonjour
+  coins:
+    description: Gère ton solde de tals
+    usage: /coins [pay|give|take|set|baltop|reset] [joueur] [montant]
+    permission: plugin2.admin
+  hub:
+      description: Commandes administratives du hub (setspawn, reload).
+      usage: /hub <setspawn|reload>
+      permission: plugin2.admin
+
+permissions:
+  plugin2.admin:
+    description: Donne accès aux commandes admin de l'économie (give, take, set, reset)
+    default: op

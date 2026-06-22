@@ -1,0 +1,95 @@
+# =========================================================
+#  messages.yml — Tous les textes envoyés aux joueurs
+# =========================================================
+# Tu peux utiliser les codes couleur classiques (§6, §l, §a, etc.)
+# OU la syntaxe & (ex: &6&l) — les deux fonctionnent.
+# Variables disponibles : indiquées entre {accolades} pour chaque message.
+
+welcome:
+  join-private: "&aBienvenue sur le serveur, &e{joueur}&a !"
+  join-broadcast: "&7{joueur} a rejoint la partie."
+
+coins:
+  solde-personnel: "&6&lCoins &7» &fTon solde : &a{montant}"
+  solde-autre: "&6&lCoins &7» &fSolde de &e{joueur}&7 : &a{montant}"
+  permission-refusee-voir-solde: "&c&l✗ &cTu n'as pas la permission de voir le solde d'un autre joueur."
+  permission-refusee-admin: "&c&l✗ &cTu n'as pas la permission d'utiliser cette commande."
+  sous-commande-inconnue: "&cSous-commande inconnue."
+  joueur-requis: "&cCette commande doit être exécutée par un joueur."
+
+  pay:
+    seul-joueur: "&cSeul un joueur peut payer un autre joueur."
+    usage: "&7Usage : &e/coins pay <joueur> <montant>"
+    cible-hors-ligne: "&cCe joueur n'est pas en ligne."
+    auto-paiement: "&cTu ne peux pas te payer toi-même."
+    solde-insuffisant: "&c&l✗ &cTu n'as pas assez de tals pour faire ça."
+    envoye: "&a&l✓ &aTu as envoyé &6{montant} &aà &e{joueur}&a."
+    recu: "&e{joueur} &at'a envoyé &6{montant} &a!"
+
+  admin:
+    usage: "&7Usage : &e/coins {action} <joueur> <montant>"
+    ajoute: "&a&l✓ &aTu as ajouté &6{montant} &aà &e{joueur}&a."
+    retire: "&a&l✓ &aTu as retiré &6{montant} &aà &e{joueur}&a."
+    retire-echec: "&c&l✗ &c&e{joueur} &cn'a pas assez de tals (opération annulée)."
+    defini: "&6&lCoins &7» &fSolde de &e{joueur} &fdéfini à &a{montant}&f."
+
+  baltop:
+    titre: "&6&l★═══ Classement des plus riches ═══★"
+    ligne: "{couleur}&l{rang}. &r&e{joueur} &7— &a{montant}"
+
+  reset:
+    confirme: "&a&l✓ &aL'économie a été réinitialisée pour tous les joueurs."
+
+  help:
+    titre: "&6&l★═══ Aide Coins (Admin) ═══★"
+    ligne-voir: "&e/coins <joueur> &7— &fVoir le solde d'un joueur"
+    ligne-give: "&e/coins give <joueur> <montant> &7— &fAjouter des tals"
+    ligne-take: "&e/coins take <joueur> <montant> &7— &fRetirer des tals"
+    ligne-set: "&e/coins set <joueur> <montant> &7— &fDéfinir un solde"
+    ligne-baltop: "&e/coins baltop &7— &fClassement des plus riches"
+    ligne-reset: "&e/coins reset &7— &fRéinitialiser l'économie"
+
+  erreurs:
+    montant-invalide: "&c'{texte}' n'est pas un nombre valide."
+    montant-negatif-ou-nul: "&cLe montant doit être supérieur à 0."
+
+compass:
+  recu: "&b&l✦ &bTu as reçu ta boussole du hub ! Clique-droit pour ouvrir le menu."
+  drop-interdit: "&cTu ne peux pas jeter cet objet."
+
+hub-menu:
+  titre: "&8&lMenu du Hub"
+  bouton-teleport: "&b&lTéléportation"
+  bouton-teleport-lore: "&7Voyage rapide vers le spawn,&7les mines, l'arène..."
+  bouton-pets: "&d&lFamiliers"
+  bouton-pets-lore: "&7Achète et équipe&7tes animaux de compagnie !"
+  bouton-fermer: "&c&lFermer"
+
+teleport-menu:
+  titre: "&8&lTéléportation"
+  spawn: "&a&lSpawn"
+  retour: "&7&lMenu précédent"
+
+pets-menu:
+  titre: "&8&lBoutique de Familiers"
+  retour: "&7&lMenu précédent"
+  item-lore-prix: "&7Prix : &6{prix} tals"
+  item-lore-possede: "&a&l✓ Déjà possédé"
+  item-lore-cliquer-acheter: "&eClique pour acheter"
+  item-lore-cliquer-equiper: "&eClique pour équiper"
+  item-lore-cliquer-retirer: "&eClique pour retirer ton familier actuel"
+  achat-reussi: "&a&l✓ &aTu as acheté le familier &d{nom}&a !"
+  achat-solde-insuffisant: "&c&l✗ &cTu n'as pas assez de tals (&6{prix} tals &crequis)."
+  equipe: "&d&l✦ &dTon familier &e{nom} &dte suit maintenant !"
+  retire: "&7Ton familier a été retiré."
+  deja-possede-equiper: "&7Tu possèdes déjà ce familier — il vient d'être équipé."
+
+hub:
+  usage: "&7Usage : &e/hub <setspawn|reload>"
+  sous-commande-inconnue: "&cSous-commande inconnue."
+  setspawn:
+    joueur-requis: "&cCette commande doit être exécutée par un joueur."
+    pas-dans-le-hub: "&cTu dois être dans le monde du hub pour définir son spawn."
+    confirme: "&a&l✓ &aSpawn du hub défini à &e{x}, {y}, {z}&a."
+  reload:
+    confirme: "&a&l✓ &ahub-rules.yml a été rechargé."

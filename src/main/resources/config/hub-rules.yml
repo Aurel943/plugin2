@@ -1,0 +1,42 @@
+# =========================================================
+#  hub-rules.yml — Règles appliquées uniquement dans le monde du hub
+# =========================================================
+# Active (true) ou désactive (false) chaque règle indépendamment.
+# Modifiable à chaud avec /plugin2 reload (si la commande existe),
+# sinon prend effet au redémarrage du serveur.
+
+monde:
+  nom: "hub"                 # nom du monde Bukkit utilisé comme hub
+  type: NORMAL                # NORMAL, FLAT ou VOID (générateur void custom)
+  heure-fixe: true             # si true, bloque l'heure (cycle jour/nuit désactivé)
+  heure-valeur: 6000            # 6000 = midi (0=aube, 6000=midi, 12000=crépuscule, 18000=minuit)
+  meteo-bloquee: true           # empêche pluie/orage de démarrer
+  feu-bloque: true              # empêche le feu de se propager / de démarrer
+  mob-spawn-naturel: false      # désactive le spawn naturel de mobs hostiles/passifs
+
+joueur:
+  dommages-chute: false         # dégâts de chute désactivés
+  tous-degats: true             # si false, le joueur est totalement invulnérable dans le hub
+  faim-active: false            # si false, la barre de faim ne descend jamais
+  pvp-autorise: false           # si false, les joueurs ne peuvent pas se frapper entre eux
+  garde-inventaire-en-mourant: true   # si true, pas de perte d'objets en cas de mort dans le hub
+  vol-autorise: false           # autorise /fly automatiquement à tous les joueurs dans le hub
+
+monde-fige:
+  casse-bloc-interdite: true     # empêche de casser le moindre bloc
+  pose-bloc-interdite: true      # empêche de poser le moindre bloc
+  interaction-bloquee: false     # si true, bloque aussi l'interaction avec portes/leviers/coffres
+
+# Point de spawn du hub. Modifiable ici à la main, OU via la commande
+# en jeu "/hub setspawn" (admin) qui écrit directement ces valeurs.
+# Si cette section est absente/vide, le plugin utilise le spawn par
+# défaut généré par Bukkit pour le monde (rarement idéal pour une vraie map).
+spawn:
+  x: 0.5
+  y: 100.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+  rayon-aleatoire: 3.0   # en blocs. 0 = spawn toujours au même point exact.
+    # >0 = tire un point aléatoire dans ce rayon autour du centre,
+  # et recherche automatiquement le sol pour éviter de spawn dans le vide/un bloc.

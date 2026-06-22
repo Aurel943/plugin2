@@ -1,0 +1,162 @@
+package org.example.plugin2;
+
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.example.plugin2.commands.CoinsCommand;
+import org.example.plugin2.commands.HubCommand;
+import org.example.plugin2.economy.Database;
+import org.example.plugin2.economy.EconomyManager;
+import org.example.plugin2.listeners.CompassListener;
+import org.example.plugin2.listeners.HubRulesListener;
+import org.example.plugin2.listeners.WelcomeListener;
+import org.example.plugin2.menus.HubMenu;
+import org.example.plugin2.menus.PetsMenu;
+import org.example.plugin2.menus.TeleportMenu;
+import org.example.plugin2.messages.MessagesManager;
+import org.example.plugin2.pets.PetManager;
+import org.example.plugin2.world.HubWorldManager;
+
+import java.util.Map;
+import java.util.UUID;
+
+public class Plugin2 extends JavaPlugin {
+
+    private Database database;
+    private EconomyManager economyManager;
+    private MessagesManager messagesManager;
+    private PetManager petManager;
+
+    private HubMenu hubMenu;
+    private TeleportMenu teleportMenu;
+    private PetsMenu petsMenu;
+    private CompassListener compassListener;
+    private HubWorldManager hubWorldManager;
+
+    @Override
+    public void onEnable() {
+        getLogger().info("Plugin2 a été activé avec succès !");
+
+        // Charge messages.yml et pets.yml dans le dossier du plugin s'ils n'existent pas encore
+        saveDefaultResourceIfMissing("config/messages.yml");
+        saveDefaultResourceIfMissing("config/pets.yml");
+        saveDefaultResourceIfMissing("config/hub-rules.yml");
+
+        // Initialisation de la base et du gestionnaire d'économie
+        database = new Database(getDataFolder(), getLogger());
+        database.connect();
+        economyManager = new EconomyManager(database);
+
+        // Managers de contenu paramétrable
+        messagesManager = new MessagesManager(this);
+        petManager = new PetManager(this, database);
+
+        // Monde du hub : crée/charge le monde dédié et applique ses règles (heure, météo...)
+        hubWorldManager = new HubWorldManager(this);
+        hubWorldManager.setupWorld();
+
+        // Menus (chacun s'enregistre aussi comme listener pour ses propres clics)
+        hubMenu = new HubMenu(this);
+        teleportMenu = new TeleportMenu(this);
+        petsMenu = new PetsMenu(this);
+        compassListener = new CompassListener(this);
+
+        // Enregistrement des listeners
+        getServer().getPluginManager().registerEvents(new WelcomeListener(this), this);
+        getServer().getPluginManager().registerEvents(hubMenu, this);
+        getServer().getPluginManager().registerEvents(teleportMenu, this);
+        getServer().getPluginManager().registerEvents(petsMenu, this);
+        getServer().getPluginManager().registerEvents(compassListener, this);
+        getServer().getPluginManager().registerEvents(new PetSessionListener(), this);
+        getServer().getPluginManager().registerEvents(new HubRulesListener(this, hubWorldManager), this);
+
+        // Enregistrement de l'executor pour la commande /coins
+        // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
+        getCommand("coins").setExecutor(new CoinsCommand(this));
+        getCommand("hub").setExecutor(new HubCommand(this));
+    }
+
+    @Override
+    public void onDisable() {
+        getLogger().info("Plugin2 a été désactivé.");
+        if (hubWorldManager != null) {
+            hubWorldManager.shutdown();
+        }
+        if (database != null) {
+            database.disconnect();
+        }
+    }
+
+    private void saveDefaultResourceIfMissing(String name) {
+        java.io.File target = new java.io.File(getDataFolder(), name);
+        if (!target.exists()) {
+            saveResource(name, false);
+        }
+    }
+
+    public EconomyManager getEconomyManager() {
+        return economyManager;
+    }
+
+    public MessagesManager getMessagesManager() {
+        return messagesManager;
+    }
+
+    public PetManager getPetManager() {
+        return petManager;
+    }
+
+    public HubMenu getHubMenu() {
+        return hubMenu;
+    }
+
+    public TeleportMenu getTeleportMenu() {
+        return teleportMenu;
+    }
+
+    public PetsMenu getPetsMenu() {
+        return petsMenu;
+    }
+
+    public HubWorldManager getHubWorldManager() {
+        return hubWorldManager;
+    }
+
+    // Petits "ponts" pour que CoinsCommand puisse accéder à la database
+    // sans avoir à la connaître directement (juste via Plugin2)
+    public Map<UUID, Double> getDatabaseAllBalances() {
+        return database.getAllBalances();
+    }
+
+    public void getDatabaseResetAll() {
+        economyManager.resetAll(database);
+    }
+
+    /** Petit listener interne : gère le pet actif d'un joueur à la connexion/déconnexion. */
+    private class PetSessionListener implements org.bukkit.event.Listener {
+        @org.bukkit.event.EventHandler
+        public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+            petManager.handlePlayerJoin(event.getPlayer());
+        }
+
+        @org.bukkit.event.EventHandler
+        public void onQuit(PlayerQuitEvent event) {
+            petManager.handlePlayerQuit(event.getPlayer());
+        }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("bonjour")) {
+            if (sender instanceof Player player) {
+                player.sendMessage("Bonjour " + player.getName() + " ! Le plugin fonctionne.");
+            } else {
+                sender.sendMessage("Bonjour depuis la console !");
+            }
+            return true;
+        }
+        return false;
+    }
+}

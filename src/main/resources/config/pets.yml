@@ -1,0 +1,82 @@
+# =========================================================
+#  pets.yml — Définition des familiers achetables dans le hub
+# =========================================================
+#
+# Chaque pet a :
+#   type        : "MOB" (une vraie entité Bukkit qui marche/vole derrière le joueur)
+#                 ou "ARMOR_STAND" (un support flottant avec un item sur la tête)
+#   prix        : coût en tals
+#   display-name: nom affiché dans le menu (couleurs & ou § acceptées)
+#   icon        : matériau de l'item dans le menu GUI (toujours requis)
+#
+#   --- si type: MOB ---
+#   entity-type : un EntityType Bukkit valide (WOLF, CAT, PARROT, FOX, RABBIT, etc.)
+#
+#   --- si type: ARMOR_STAND ---
+#   head-item   : matériau affiché sur la tête de l'armor stand (ex: DIAMOND, PLAYER_HEAD)
+#   mini        : true/false — réduit la taille du support (look "pet miniature")
+#
+# Pour ajouter un pet : copie un bloc existant, change la clé (ex: "renard"),
+# et ajuste les valeurs. Aucun redémarrage du serveur nécessaire si tu fais
+# /plugin2 reload (si la commande existe) — sinon redémarre le serveur.
+
+pets:
+
+  loup:
+    type: MOB
+    entity-type: WOLF
+    prix: 100
+    display-name: "&fLoup"
+    icon: BONE
+
+  chat:
+    type: MOB
+    entity-type: CAT
+    prix: 100
+    display-name: "&fChat"
+    icon: COD
+
+  renard:
+    type: MOB
+    entity-type: FOX
+    prix: 150
+    display-name: "&6Renard"
+    icon: SWEET_BERRIES
+
+  perroquet:
+    type: MOB
+    entity-type: PARROT
+    prix: 200
+    display-name: "&bPerroquet"
+    icon: FEATHER
+
+  lapin:
+    type: MOB
+    entity-type: RABBIT
+    prix: 80
+    display-name: "&fLapin"
+    icon: CARROT
+
+  diamant-flottant:
+    type: ARMOR_STAND
+    head-item: DIAMOND
+    mini: true
+    prix: 500
+    display-name: "&b&lDiamant Flottant"
+    icon: DIAMOND
+
+  tete-zombie:
+    type: ARMOR_STAND
+    head-item: ZOMBIE_HEAD
+    mini: true
+    prix: 50
+    display-name: "&2Tête de Zombie"
+    icon: ZOMBIE_HEAD
+
+  etoile-naine:
+    type: ARMOR_STAND
+    head-item: NETHER_STAR
+    mini: true
+    prix: 1000
+    display-name: "&d&lÉtoile Naine"
+    icon: NETHER_STAR
