@@ -34,13 +34,16 @@ monde-fige:
 # en appuyant deux fois rapidement sur espace (double-tap) — aucune boussole
 # ni aucun coût à l'usage n'est nécessaire après l'achat initial.
 # L'achat se fait dans le menu du hub (boussole > Améliorations).
+#
+# Le double-tap ne fonctionne que depuis le sol. Une fois le super saut
+# effectué, il suffit de retoucher le sol pour pouvoir en refaire un —
+# il n'y a pas de délai d'attente fixe après l'atterrissage.
 super-saut:
   active: true
   prix: 250.0                      # coût en tals de l'achat unique, payé une seule fois pour la vie
   puissance-verticale: 1.2          # force verticale (plus faible que l'ancien saut payant par usage)
   puissance-horizontale: 1.0        # force horizontale, dans la direction où le joueur regarde
-  fenetre-double-tap-secondes: 0.4  # délai max entre les deux appuis sur espace pour compter comme un double-tap
-  cooldown-secondes: 1.5            # délai minimum entre deux super sauts déclenchés
+  fenetre-double-tap-secondes: 0.25 # délai max entre les deux appuis sur espace pour compter comme un double-tap
 
 # Point de spawn du hub. Modifiable ici à la main, OU via la commande
 # en jeu "/hub setspawn" (admin) qui écrit directement ces valeurs.
