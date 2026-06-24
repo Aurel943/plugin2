@@ -62,7 +62,7 @@ public class Plugin2 extends JavaPlugin {
 
         // Initialisation de la base et du gestionnaire d'économie
         database = new Database(getDataFolder(), getLogger());
-        database.connect();
+        database.connect(this);
         economyManager = new EconomyManager(database);
         upgradeManager = new UpgradeManager(database);
 

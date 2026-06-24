@@ -1,0 +1,32 @@
+# =========================================================
+#  database.yml — Connexion à la base de données MySQL
+# =========================================================
+# Toutes les données du plugin (économie, pets, upgrades, cosmétiques)
+# sont stockées dans cette base MySQL plutôt que dans un fichier SQLite
+# local. Ça permet à plusieurs serveurs Paper (hub, survival, etc., par
+# exemple derrière un proxy BungeeCord/Velocity) de partager les MÊMES
+# données joueur.
+#
+# Pour des tests en local (XAMPP, MySQL Workbench, etc.) :
+#   host: 127.0.0.1, port: 3306, utilisateur root, mot de passe vide
+#   par défaut sur une install XAMPP fraîche.
+#
+# En production, ne JAMAIS committer ce fichier rempli avec de vrais
+# identifiants dans un dépôt public — garde-le uniquement sur le serveur.
+
+mysql:
+  host: "127.0.0.1"
+  port: 3306
+  database: "plugin2_db"
+  utilisateur: "root"
+  mot-de-passe: ""
+
+  # Paramètres du pool de connexions HikariCP. Les valeurs par défaut
+  # conviennent pour un petit/moyen serveur ; à ajuster seulement si
+  # tu rencontres des erreurs de type "connection timeout" en charge.
+  pool:
+    taille-max: 10           # nombre maximum de connexions ouvertes simultanément
+    taille-min-idle: 2        # nombre de connexions maintenues ouvertes même au repos
+    timeout-connexion-ms: 10000   # délai max pour obtenir une connexion avant erreur
+    timeout-idle-ms: 600000       # durée avant fermeture d'une connexion inactive
+    duree-vie-max-ms: 1800000     # durée de vie max d'une connexion avant renouvellement
