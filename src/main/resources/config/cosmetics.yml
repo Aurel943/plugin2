@@ -1,0 +1,178 @@
+# Chaque réglage / texte modifiable dans les class Java doivent pouvoir être modifié directement depuis les yml
+# =========================================================
+#  cosmetics.yml — Catalogue des cosmétiques achetables dans le hub
+# =========================================================
+# Trois catégories indépendantes : trails, tags, compass-skins.
+# Dans chaque catégorie, le joueur peut posséder plusieurs cosmétiques
+# mais n'en a qu'UN seul équipé à la fois (comme les pets).
+#
+# Pour ajouter un cosmétique : copie un bloc existant dans la bonne
+# catégorie, change la clé (ex: "lave"), ajuste les valeurs.
+# Aucun redémarrage nécessaire si tu fais /hub reload — sinon redémarre
+# le serveur.
+
+# ---------------------------------------------------------
+# TRAILS — traînée de particules en boucle qui suit le joueur
+# ---------------------------------------------------------
+# particle     : un Particle Bukkit valide (FLAME, SNOWFLAKE, HEART, etc.)
+# prix         : coût en tals
+# display-name : nom affiché dans le menu (couleurs & ou § acceptées)
+# icon         : matériau de l'item dans le menu GUI
+# intervalle-ticks : fréquence d'émission (20 ticks = 1 seconde). Plus bas = plus dense.
+# nombre       : nombre de particules émises à chaque émission
+# rayon-x / rayon-y / rayon-z : dispersion aléatoire autour du point d'émission
+# vitesse      : vitesse/intensité de la particule (selon son type, ex: FLAME monte plus vite si >0)
+# hauteur      : décalage vertical par rapport aux pieds du joueur (0 = au sol, 1 = à la taille environ)
+trails:
+
+  flammes:
+    particle: FLAME
+    prix: 300
+    display-name: "&6&lTrail Flammes"
+    icon: BLAZE_POWDER
+    intervalle-ticks: 4
+    nombre: 2
+    rayon-x: 0.25
+    rayon-y: 0.05
+    rayon-z: 0.25
+    vitesse: 0.01
+    hauteur: 0.1
+
+  neige:
+    particle: SNOWFLAKE
+    prix: 300
+    display-name: "&b&lTrail Neige"
+    icon: SNOWBALL
+    intervalle-ticks: 4
+    nombre: 3
+    rayon-x: 0.3
+    rayon-y: 0.1
+    rayon-z: 0.3
+    vitesse: 0.0
+    hauteur: 0.2
+
+  coeurs:
+    particle: HEART
+    prix: 450
+    display-name: "&d&lTrail Cœurs"
+    icon: POPPY
+    intervalle-ticks: 6
+    nombre: 1
+    rayon-x: 0.3
+    rayon-y: 0.2
+    rayon-z: 0.3
+    vitesse: 0.0
+    hauteur: 0.9
+
+  ame: # "âme", sans accent pour éviter tout souci d'encodage de clé YAML
+    particle: SOUL
+    prix: 600
+    display-name: "&3&lTrail des Âmes"
+    icon: SOUL_LANTERN
+    intervalle-ticks: 3
+    nombre: 2
+    rayon-x: 0.25
+    rayon-y: 0.1
+    rayon-z: 0.25
+    vitesse: 0.02
+    hauteur: 0.1
+
+  enchantement:
+    particle: ENCHANT
+    prix: 800
+    display-name: "&5&lTrail Enchantement"
+    icon: ENCHANTING_TABLE
+    intervalle-ticks: 2
+    nombre: 6
+    rayon-x: 0.4
+    rayon-y: 0.4
+    rayon-z: 0.4
+    vitesse: 0.3
+    hauteur: 0.8
+
+  fin: # "fin" comme dans "End" — particules d'End Rod, look premium discret
+    particle: END_ROD
+    prix: 1200
+    display-name: "&f&lTrail Stellaire"
+    icon: END_ROD
+    intervalle-ticks: 3
+    nombre: 2
+    rayon-x: 0.2
+    rayon-y: 0.15
+    rayon-z: 0.2
+    vitesse: 0.01
+    hauteur: 0.9
+
+# ---------------------------------------------------------
+# TAGS — préfixe coloré affiché devant le pseudo dans le chat
+# ---------------------------------------------------------
+# format       : texte affiché juste avant le pseudo. Le code couleur DOIT
+#                être inclus dans la chaîne (il n'est pas ajouté automatiquement).
+# prix         : coût en tals
+# display-name : nom affiché dans le menu
+# icon         : matériau de l'item dans le menu GUI
+tags:
+
+  debutant:
+    format: "&7[Débutant] "
+    prix: 0
+    display-name: "&7Tag Débutant"
+    icon: PAPER
+
+  vip:
+    format: "&6[VIP] "
+    prix: 500
+    display-name: "&6&lTag VIP"
+    icon: GOLD_INGOT
+
+  legende:
+    format: "&d&l[Légende] "
+    prix: 1500
+    display-name: "&d&lTag Légende"
+    icon: NETHER_STAR
+
+  pro:
+    format: "&b[PRO] "
+    prix: 750
+    display-name: "&bTag Pro"
+    icon: DIAMOND
+
+  hardcore:
+    format: "&4&l[Hardcore] "
+    prix: 1000
+    display-name: "&4&lTag Hardcore"
+    icon: REDSTONE
+
+# ---------------------------------------------------------
+# COMPASS-SKINS — apparence custom de la boussole du hub
+# ---------------------------------------------------------
+# material     : matériau utilisé pour l'item (remplace COMPASS visuellement,
+#                la fonction "ouvre le menu au clic droit" reste identique)
+# display-name : nom affiché sur l'item en jeu
+# prix         : coût en tals
+# icon         : matériau affiché dans le menu d'achat (souvent = material)
+compass-skins:
+
+  classique:
+    material: COMPASS
+    display-name: "&b&lMenu du Hub"
+    prix: 0
+    icon: COMPASS
+
+  boussole-doree:
+    material: CLOCK
+    display-name: "&6&lMenu du Hub Doré"
+    prix: 400
+    icon: CLOCK
+
+  oeil-de-dragon:
+    material: ENDER_EYE
+    display-name: "&5&lŒil du Hub"
+    prix: 900
+    icon: ENDER_EYE
+
+  coeur-marin:
+    material: HEART_OF_THE_SEA
+    display-name: "&b&lCœur du Hub"
+    prix: 1100
+    icon: HEART_OF_THE_SEA

@@ -68,6 +68,8 @@ hub-menu:
   bouton-ameliorations-lore: "&7Achète des améliorations&7permanentes pour la vie !"
   bouton-pets: "&d&lFamiliers"
   bouton-pets-lore: "&7Achète et équipe&7tes animaux de compagnie !"
+  bouton-cosmetiques: "&e&lCosmétiques"
+  bouton-cosmetiques-lore: "&7Trails, tags de chat&7et skins de boussole !"
   bouton-fermer: "&c&lFermer"
 
 upgrade-shop:
@@ -101,6 +103,29 @@ pets-menu:
   equipe: "&d&l✦ &dTon familier &e{nom} &dte suit maintenant !"
   retire: "&7Ton familier a été retiré."
   deja-possede-equiper: "&7Tu possèdes déjà ce familier — il vient d'être équipé."
+
+cosmetics-menu:
+  titre-accueil: "&8&lCosmétiques"
+  titre-trails: "&8&lTrails de Particules"
+  titre-tags: "&8&lTags de Chat"
+  titre-skins: "&8&lSkins de Boussole"
+  bouton-trails: "&6&lTrails"
+  bouton-trails-lore: "&7Une traînée de particules&7qui te suit partout !"
+  bouton-tags: "&e&lTags de Chat"
+  bouton-tags-lore: "&7Un préfixe coloré&7devant ton pseudo !"
+  bouton-skins: "&b&lSkins de Boussole"
+  bouton-skins-lore: "&7Change l'apparence&7de ta boussole du hub !"
+  retour: "&7&lMenu précédent"
+  tag-apercu: "&7Aperçu : {apercu}"
+  item-lore-prix: "&7Prix : &6{prix} tals"
+  item-lore-possede: "&a&l✓ Déjà possédé"
+  item-lore-cliquer-acheter: "&eClique pour acheter"
+  item-lore-cliquer-equiper: "&eClique pour équiper"
+  item-lore-cliquer-retirer: "&eClique pour retirer"
+  achat-reussi: "&a&l✓ &aTu as débloqué &e{nom}&a !"
+  achat-solde-insuffisant: "&c&l✗ &cTu n'as pas assez de tals (&6{prix} tals &crequis)."
+  equipe: "&e&l✦ &e{nom} &7est maintenant équipé !"
+  retire: "&7Cosmétique retiré."
 
 hub:
   usage: "&7Usage : &e/hub <setspawn|reload>"

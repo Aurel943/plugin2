@@ -54,6 +54,7 @@ public class Database {
         }
         createPetsTable();
         createUpgradesTable();
+        createCosmeticsTable();
     }
 
     private void createPetsTable() throws SQLException {
@@ -82,6 +83,26 @@ public class Database {
                 uuid TEXT NOT NULL,
                 upgrade_id TEXT NOT NULL,
                 PRIMARY KEY (uuid, upgrade_id)
+            );
+            """;
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
+    private void createCosmeticsTable() throws SQLException {
+        // Une ligne par cosmétique possédé par un joueur, regroupé par "category"
+        // (trail, tag, compass-skin...). "equipped" vaut 1 pour au plus UN
+        // cosmétique équipé PAR CATÉGORIE et par joueur (ex: un trail + un tag
+        // + un skin de boussole peuvent être équipés simultanément, mais pas
+        // deux trails à la fois). Même logique que la table "pets".
+        String sql = """
+            CREATE TABLE IF NOT EXISTS cosmetics (
+                uuid TEXT NOT NULL,
+                category TEXT NOT NULL,
+                cosmetic_id TEXT NOT NULL,
+                equipped INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (uuid, category, cosmetic_id)
             );
             """;
         try (Statement stmt = connection.createStatement()) {
@@ -293,6 +314,96 @@ public class Database {
             ps.executeUpdate();
         } catch (SQLException e) {
             logger.severe("Erreur lors de l'attribution d'une amélioration : " + e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Cosmétiques (achat multiple par catégorie, un seul équipé par catégorie)
+    // ---------------------------------------------------------------
+
+    /**
+     * Enregistre qu'un joueur possède ce cosmétique dans cette catégorie
+     * (achat). Ne fait rien si la ligne existe déjà.
+     */
+    public void grantCosmetic(UUID uuid, String category, String cosmeticId) {
+        String sql = "INSERT OR IGNORE INTO cosmetics (uuid, category, cosmetic_id, equipped) VALUES (?, ?, ?, 0)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, category);
+            ps.setString(3, cosmeticId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de l'attribution d'un cosmétique : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Retourne l'ensemble des ids de cosmétiques possédés par un joueur,
+     * pour une catégorie donnée (ex: "trail", "tag", "compass-skin").
+     */
+    public java.util.Set<String> getOwnedCosmetics(UUID uuid, String category) {
+        java.util.Set<String> result = new java.util.HashSet<>();
+        String sql = "SELECT cosmetic_id FROM cosmetics WHERE uuid = ? AND category = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, category);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(rs.getString("cosmetic_id"));
+            }
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture des cosmétiques possédés : " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Retourne l'id du cosmétique actuellement équipé pour ce joueur dans
+     * cette catégorie, ou null s'il n'en a aucun.
+     */
+    public String getEquippedCosmetic(UUID uuid, String category) {
+        String sql = "SELECT cosmetic_id FROM cosmetics WHERE uuid = ? AND category = ? AND equipped = 1 LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, category);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("cosmetic_id");
+            }
+            return null;
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture du cosmétique équipé : " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Marque un cosmétique comme équipé pour ce joueur dans cette catégorie,
+     * et désélectionne tous les autres cosmétiques de la même catégorie pour
+     * ce joueur. Passer cosmeticId = null désélectionne simplement tout pour
+     * cette catégorie (équivalent à "aucun cosmétique équipé").
+     */
+    public void setEquippedCosmetic(UUID uuid, String category, String cosmeticId) {
+        String clearSql = "UPDATE cosmetics SET equipped = 0 WHERE uuid = ? AND category = ?";
+        try (PreparedStatement ps = connection.prepareStatement(clearSql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, category);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la désélection des cosmétiques : " + e.getMessage());
+            return;
+        }
+
+        if (cosmeticId == null) return;
+
+        String setSql = "UPDATE cosmetics SET equipped = 1 WHERE uuid = ? AND category = ? AND cosmetic_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(setSql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, category);
+            ps.setString(3, cosmeticId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la sélection du cosmétique équipé : " + e.getMessage());
         }
     }
 

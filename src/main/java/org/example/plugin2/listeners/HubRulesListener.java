@@ -9,10 +9,12 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.example.plugin2.Plugin2;
 import org.example.plugin2.world.HubWorldManager;
@@ -51,6 +53,30 @@ public class HubRulesListener implements Listener {
         if (config().getBoolean("joueur.vol-autorise", false)) {
             event.getPlayer().setAllowFlight(true);
         }
+
+        // La boss bar du hub (voir bossbar.yml) s'affiche dès l'arrivée dans le hub.
+        plugin.getBossBarManager().subscribe(event.getPlayer());
+    }
+
+    /**
+     * Abonne/désabonne la boss bar du hub quand un joueur change de monde
+     * (ex: entre dans le hub depuis un autre monde, ou en sort). Couvre le
+     * cas où d'autres plugins/commandes téléportent le joueur ailleurs que
+     * via les chemins déjà gérés par ce plugin (HubCommand, TeleportMenu...).
+     */
+    @EventHandler
+    public void onChangeWorld(PlayerChangedWorldEvent event) {
+        Player player = event.getPlayer();
+        if (hubWorldManager.isHubWorld(player.getWorld())) {
+            plugin.getBossBarManager().subscribe(player);
+        } else {
+            plugin.getBossBarManager().unsubscribe(player);
+        }
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        plugin.getBossBarManager().unsubscribe(event.getPlayer());
     }
 
     // ---------------------------------------------------------------

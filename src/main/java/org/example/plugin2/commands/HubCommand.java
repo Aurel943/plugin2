@@ -76,6 +76,10 @@ public class HubCommand implements CommandExecutor {
             return;
         }
         hubWorldManager.loadConfig();
+        plugin.getMessagesManager().reload();
+        plugin.getPetManager().reload();
+        plugin.getCosmeticManager().reload();
+        plugin.getBossBarManager().reload();
         messages.send(sender, "hub.reload.confirme");
     }
 }

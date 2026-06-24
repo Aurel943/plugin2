@@ -5,15 +5,20 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.example.plugin2.bossbar.HubBossBarManager;
 import org.example.plugin2.commands.CoinsCommand;
 import org.example.plugin2.commands.HubCommand;
+import org.example.plugin2.cosmetics.CosmeticManager;
+import org.example.plugin2.cosmetics.TrailEngine;
 import org.example.plugin2.economy.Database;
 import org.example.plugin2.economy.EconomyManager;
 import org.example.plugin2.economy.UpgradeManager;
 import org.example.plugin2.listeners.CompassListener;
 import org.example.plugin2.listeners.HubRulesListener;
 import org.example.plugin2.listeners.SuperSautListener;
+import org.example.plugin2.listeners.TagChatListener;
 import org.example.plugin2.listeners.WelcomeListener;
+import org.example.plugin2.menus.CosmeticsMenu;
 import org.example.plugin2.menus.HubMenu;
 import org.example.plugin2.menus.PetsMenu;
 import org.example.plugin2.menus.TeleportMenu;
@@ -32,11 +37,15 @@ public class Plugin2 extends JavaPlugin {
     private UpgradeManager upgradeManager;
     private MessagesManager messagesManager;
     private PetManager petManager;
+    private CosmeticManager cosmeticManager;
+    private TrailEngine trailEngine;
+    private HubBossBarManager bossBarManager;
 
     private HubMenu hubMenu;
     private TeleportMenu teleportMenu;
     private PetsMenu petsMenu;
     private UpgradeShopMenu upgradeShopMenu;
+    private CosmeticsMenu cosmeticsMenu;
     private CompassListener compassListener;
     private HubWorldManager hubWorldManager;
 
@@ -48,6 +57,8 @@ public class Plugin2 extends JavaPlugin {
         saveDefaultResourceIfMissing("config/messages.yml");
         saveDefaultResourceIfMissing("config/pets.yml");
         saveDefaultResourceIfMissing("config/hub-rules.yml");
+        saveDefaultResourceIfMissing("config/cosmetics.yml");
+        saveDefaultResourceIfMissing("config/bossbar.yml");
 
         // Initialisation de la base et du gestionnaire d'économie
         database = new Database(getDataFolder(), getLogger());
@@ -58,16 +69,24 @@ public class Plugin2 extends JavaPlugin {
         // Managers de contenu paramétrable
         messagesManager = new MessagesManager(this);
         petManager = new PetManager(this, database);
+        cosmeticManager = new CosmeticManager(this, database);
+        trailEngine = new TrailEngine(this, cosmeticManager);
 
         // Monde du hub : crée/charge le monde dédié et applique ses règles (heure, météo...)
         hubWorldManager = new HubWorldManager(this);
         hubWorldManager.setupWorld();
+
+        // Boss bar du hub : démarrée après le monde, pour pouvoir abonner les
+        // joueurs déjà connectés au reload (cf. HubBossBarManager.reload()).
+        bossBarManager = new HubBossBarManager(this);
+        bossBarManager.start();
 
         // Menus (chacun s'enregistre aussi comme listener pour ses propres clics)
         hubMenu = new HubMenu(this);
         teleportMenu = new TeleportMenu(this);
         petsMenu = new PetsMenu(this);
         upgradeShopMenu = new UpgradeShopMenu(this);
+        cosmeticsMenu = new CosmeticsMenu(this);
         compassListener = new CompassListener(this);
 
         // Enregistrement des listeners
@@ -76,10 +95,12 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(teleportMenu, this);
         getServer().getPluginManager().registerEvents(petsMenu, this);
         getServer().getPluginManager().registerEvents(upgradeShopMenu, this);
+        getServer().getPluginManager().registerEvents(cosmeticsMenu, this);
         getServer().getPluginManager().registerEvents(compassListener, this);
         getServer().getPluginManager().registerEvents(new PetSessionListener(), this);
         getServer().getPluginManager().registerEvents(new HubRulesListener(this, hubWorldManager), this);
         getServer().getPluginManager().registerEvents(new SuperSautListener(this), this);
+        getServer().getPluginManager().registerEvents(new TagChatListener(this), this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
@@ -90,6 +111,9 @@ public class Plugin2 extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("Plugin2 a été désactivé.");
+        if (bossBarManager != null) {
+            bossBarManager.shutdown();
+        }
         if (hubWorldManager != null) {
             hubWorldManager.shutdown();
         }
@@ -119,6 +143,26 @@ public class Plugin2 extends JavaPlugin {
 
     public PetManager getPetManager() {
         return petManager;
+    }
+
+    public CosmeticManager getCosmeticManager() {
+        return cosmeticManager;
+    }
+
+    public TrailEngine getTrailEngine() {
+        return trailEngine;
+    }
+
+    public HubBossBarManager getBossBarManager() {
+        return bossBarManager;
+    }
+
+    public CosmeticsMenu getCosmeticsMenu() {
+        return cosmeticsMenu;
+    }
+
+    public CompassListener getCompassListener() {
+        return compassListener;
     }
 
     public HubMenu getHubMenu() {
@@ -151,16 +195,18 @@ public class Plugin2 extends JavaPlugin {
         economyManager.resetAll(database);
     }
 
-    /** Petit listener interne : gère le pet actif d'un joueur à la connexion/déconnexion. */
+    /** Petit listener interne : gère le pet actif et le trail cosmétique actif d'un joueur à la connexion/déconnexion. */
     private class PetSessionListener implements org.bukkit.event.Listener {
         @org.bukkit.event.EventHandler
         public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
             petManager.handlePlayerJoin(event.getPlayer());
+            trailEngine.handlePlayerJoin(event.getPlayer());
         }
 
         @org.bukkit.event.EventHandler
         public void onQuit(PlayerQuitEvent event) {
             petManager.handlePlayerQuit(event.getPlayer());
+            trailEngine.handlePlayerQuit(event.getPlayer());
         }
     }
 

@@ -4,7 +4,7 @@
 # Active (true) ou désactive (false) chaque règle indépendamment.
 # Modifiable à chaud avec /plugin2 reload (si la commande existe),
 # sinon prend effet au redémarrage du serveur.
-# Chaque réglage / texte modifiable dans les class Java doivent pouvoir être modifié directement depuis le yml
+# Chaque réglage / texte modifiable dans les class Java doivent pouvoir être modifié directement depuis les yml
 
 monde:
   nom: "hub"                 # nom du monde Bukkit utilisé comme hub

@@ -1,0 +1,48 @@
+# Chaque réglage / texte modifiable dans les class Java doivent pouvoir être modifié directement depuis les yml
+# =========================================================
+#  bossbar.yml — Boss bar affichée en haut de l'écran dans le hub
+# =========================================================
+# Ce fichier est volontairement séparé de hub-rules.yml et de
+# messages.yml : il ne concerne QUE le contenu et le style de la
+# boss bar, pour qu'on puisse s'y retrouver rapidement.
+#
+# La boss bar fait défiler plusieurs "slides" en boucle : chacune
+# reste affichée pendant sa propre durée, puis on passe à la suivante.
+#
+# Une slide spéciale "{solde}" est calculée en live (mise à jour chaque
+# seconde tant qu'elle est affichée) : si une slide contient {solde},
+# le texte est recalculé dynamiquement pour CHAQUE joueur avec SON
+# propre solde en tals. Toutes les autres slides sont du texte fixe,
+# identique pour tout le monde.
+
+general:
+  active: true                  # active/désactive complètement la boss bar dans le hub
+  couleur: YELLOW                # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  style: SOLID                   # SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  progression-decroissante: true # true = la barre se vide pendant la durée d'affichage (effet "timer" visuel)
+  # false = la barre reste pleine tout le temps d'affichage
+
+# Liste des slides affichées en boucle, dans l'ordre où elles apparaissent ici.
+# Chaque slide a :
+#   texte  : le message (couleurs & acceptées). Utilise {solde} pour insérer
+#            dynamiquement le solde en tals du joueur qui regarde la barre.
+#   duree-secondes : combien de temps cette slide reste affichée avant de
+#            passer à la suivante.
+slides:
+
+  - texte: "&6&l💰 Ton solde : &e{solde} tals"
+    duree-secondes: 6
+
+  - texte: "&b&l✦ Bienvenue dans le Hub ! Ouvre la boussole pour le menu."
+    duree-secondes: 5
+
+  - texte: "&d&l★ Débloque des cosmétiques dans la boutique du hub !"
+    duree-secondes: 5
+
+  - texte: "&a&l✓ Double-tap espace = Super Saut (si débloqué)"
+    duree-secondes: 5
+
+  # Exemple de slide "pub/info" supplémentaire : duplique ce bloc et
+  # change juste le texte pour ajouter une annonce, un lien Discord, etc.
+  - texte: "&7Retrouve le serveur sur notre Discord !"
+    duree-secondes: 4

@@ -37,17 +37,21 @@ public class HubMenu implements Listener {
     public void open(Player player) {
         Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, colored(messages.get(TITLE_KEY)));
 
-        inv.setItem(11, buildItem(Material.ENDER_PEARL,
+        inv.setItem(10, buildItem(Material.ENDER_PEARL,
                 messages.get("hub-menu.bouton-teleport"),
                 List.of(messages.get("hub-menu.bouton-teleport-lore"))));
 
-        inv.setItem(13, buildItem(Material.NETHER_STAR,
+        inv.setItem(12, buildItem(Material.NETHER_STAR,
                 messages.get("hub-menu.bouton-ameliorations"),
                 List.of(messages.get("hub-menu.bouton-ameliorations-lore"))));
 
-        inv.setItem(15, buildItem(Material.BONE,
+        inv.setItem(14, buildItem(Material.BONE,
                 messages.get("hub-menu.bouton-pets"),
                 List.of(messages.get("hub-menu.bouton-pets-lore"))));
+
+        inv.setItem(16, buildItem(Material.FEATHER,
+                messages.get("hub-menu.bouton-cosmetiques"),
+                List.of(messages.get("hub-menu.bouton-cosmetiques-lore"))));
 
         inv.setItem(22, buildItem(Material.BARRIER,
                 messages.get("hub-menu.bouton-fermer"),
@@ -73,6 +77,7 @@ public class HubMenu implements Listener {
             case ENDER_PEARL -> plugin.getTeleportMenu().open(player);
             case NETHER_STAR -> plugin.getUpgradeShopMenu().open(player);
             case BONE -> plugin.getPetsMenu().open(player);
+            case FEATHER -> plugin.getCosmeticsMenu().openAccueil(player);
             case BARRIER -> player.closeInventory();
             default -> { /* rien */ }
         }
