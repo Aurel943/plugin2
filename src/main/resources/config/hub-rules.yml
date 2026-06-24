@@ -17,7 +17,7 @@ monde:
 
 joueur:
   dommages-chute: false         # dégâts de chute désactivés
-  tous-degats: true             # si false, le joueur est totalement invulnérable dans le hub
+  tous-degats: false             # si false, le joueur est totalement invulnérable dans le hub
   faim-active: false            # si false, la barre de faim ne descend jamais
   pvp-autorise: false           # si false, les joueurs ne peuvent pas se frapper entre eux
   garde-inventaire-en-mourant: true   # si true, pas de perte d'objets en cas de mort dans le hub
@@ -26,7 +26,7 @@ joueur:
 monde-fige:
   casse-bloc-interdite: true     # empêche de casser le moindre bloc
   pose-bloc-interdite: true      # empêche de poser le moindre bloc
-  interaction-bloquee: false     # si true, bloque aussi l'interaction avec portes/leviers/coffres
+  interaction-bloquee: true     # si true, bloque aussi l'interaction avec portes/leviers/coffres
   drop-item-interdit: true       # empêche de jeter un item au sol (touche Q) dans le hub
   pickup-item-interdit: true     # empêche de ramasser un item déjà au sol dans le hub
 
@@ -51,11 +51,11 @@ super-saut:
 # Si cette section est absente/vide, le plugin utilise le spawn par
 # défaut généré par Bukkit pour le monde (rarement idéal pour une vraie map).
 spawn:
-  x: 0.5
+  x: 62
   y: 100.0
-  z: 0.5
+  z: 88
   yaw: 0.0
   pitch: 0.0
-  rayon-aleatoire: 3.0   # en blocs. 0 = spawn toujours au même point exact.
+  rayon-aleatoire: 10.0   # en blocs. 0 = spawn toujours au même point exact.
   # >0 = tire un point aléatoire dans ce rayon autour du centre,
   # et recherche automatiquement le sol pour éviter de spawn dans le vide/un bloc.

@@ -17,7 +17,7 @@
 
 general:
   active: true                  # active/désactive complètement la boss bar dans le hub
-  couleur: YELLOW                # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  couleur: RED                # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
   style: SOLID                   # SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
   progression-decroissante: true # true = la barre se vide pendant la durée d'affichage (effet "timer" visuel)
   # false = la barre reste pleine tout le temps d'affichage

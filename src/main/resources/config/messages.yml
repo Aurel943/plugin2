@@ -58,7 +58,7 @@ compass:
   drop-interdit: "&cTu ne peux pas jeter cet objet."
 
 super-saut:
-  effectue: "&b&l↑ &bSuper saut !"
+  effectue: ""
 
 hub-menu:
   titre: "&8&lMenu du Hub"
