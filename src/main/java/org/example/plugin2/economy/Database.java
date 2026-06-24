@@ -76,17 +76,42 @@ public class Database {
     private void createUpgradesTable() throws SQLException {
         // Une ligne par "amélioration" achetée une fois pour toutes par un joueur
         // (ex: "super-saut"). Acheter = simple INSERT ; posséder = simple SELECT.
-        // Contrairement aux pets, il n'y a pas de notion d'équiper/déséquiper :
-        // un upgrade acheté reste actif pour la vie.
+        // Contrairement aux pets, il n'y a pas de notion d'équiper/déséquiper pour
+        // la POSSESSION : un upgrade acheté reste possédé pour la vie. En revanche,
+        // certains upgrades (comme le super-saut) peuvent être activés/désactivés
+        // par le joueur sans perdre la possession — voir la colonne "enabled" et
+        // setUpgradeEnabled() / isUpgradeEnabled() ci-dessous.
         String sql = """
             CREATE TABLE IF NOT EXISTS upgrades (
                 uuid TEXT NOT NULL,
                 upgrade_id TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
                 PRIMARY KEY (uuid, upgrade_id)
             );
             """;
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
+        }
+        migrateAddEnabledColumnIfMissing();
+    }
+
+    /**
+     * Migration pour les bases déjà existantes créées avant l'ajout de la
+     * colonne "enabled" : CREATE TABLE IF NOT EXISTS ne modifie jamais une
+     * table déjà présente, donc une vraie ALTER TABLE est nécessaire ici.
+     * Le ALTER échoue avec "duplicate column name" si la colonne existe déjà
+     * (DB neuve ou déjà migrée) — on l'ignore silencieusement dans ce cas.
+     */
+    private void migrateAddEnabledColumnIfMissing() {
+        String sql = "ALTER TABLE upgrades ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1";
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+            logger.info("Migration : colonne 'enabled' ajoutée à la table upgrades.");
+        } catch (SQLException e) {
+            // Colonne déjà présente : rien à faire, ce n'est pas une vraie erreur.
+            if (e.getMessage() == null || !e.getMessage().toLowerCase().contains("duplicate column")) {
+                logger.warning("Erreur inattendue lors de la migration de la table upgrades : " + e.getMessage());
+            }
         }
     }
 
@@ -305,15 +330,51 @@ public class Database {
     /**
      * Enregistre l'achat définitif d'une amélioration pour ce joueur.
      * Ne fait rien si l'achat existe déjà (clé primaire uuid+upgrade_id).
+     * L'upgrade est activé par défaut (enabled = 1) à l'achat.
      */
     public void grantUpgrade(UUID uuid, String upgradeId) {
-        String sql = "INSERT OR IGNORE INTO upgrades (uuid, upgrade_id) VALUES (?, ?)";
+        String sql = "INSERT OR IGNORE INTO upgrades (uuid, upgrade_id, enabled) VALUES (?, ?, 1)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());
             ps.setString(2, upgradeId);
             ps.executeUpdate();
         } catch (SQLException e) {
             logger.severe("Erreur lors de l'attribution d'une amélioration : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Vrai si l'upgrade est actuellement activé pour ce joueur (toggle ON/OFF,
+     * indépendant de la possession). Si le joueur ne possède pas l'upgrade,
+     * retourne true par défaut (valeur sans effet puisque has() sera vérifié
+     * avant de toute façon, mais évite un null inutile à gérer côté appelant).
+     */
+    public boolean isUpgradeEnabled(UUID uuid, String upgradeId) {
+        String sql = "SELECT enabled FROM upgrades WHERE uuid = ? AND upgrade_id = ? LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, upgradeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("enabled") != 0;
+            }
+            return true;
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture de l'état d'une amélioration : " + e.getMessage());
+            return true;
+        }
+    }
+
+    /** Active ou désactive un upgrade déjà possédé, sans toucher à la possession elle-même. */
+    public void setUpgradeEnabled(UUID uuid, String upgradeId, boolean enabled) {
+        String sql = "UPDATE upgrades SET enabled = ? WHERE uuid = ? AND upgrade_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, enabled ? 1 : 0);
+            ps.setString(2, uuid.toString());
+            ps.setString(3, upgradeId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors du changement d'état d'une amélioration : " + e.getMessage());
         }
     }
 

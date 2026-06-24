@@ -11,7 +11,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.example.plugin2.Plugin2;
 import org.example.plugin2.economy.UpgradeManager;
-import org.example.plugin2.messages.MessagesManager;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +21,9 @@ import java.util.UUID;
 /**
  * Détecte le double-tap de la touche espace et déclenche le "super saut" si le
  * joueur a acheté l'amélioration correspondante (achat unique, valable pour la
- * vie — voir UpgradeManager).
+ * vie — voir UpgradeManager) ET que l'amélioration est actuellement activée
+ * (toggle ON/OFF accessible depuis la boutique d'améliorations — voir
+ * UpgradeShopMenu, qui sert aussi de bouton toggle une fois l'achat fait).
  *
  * IMPORTANT : on utilise PlayerInputEvent (et non PlayerJumpEvent) pour détecter
  * l'appui. PlayerJumpEvent se redéclenche en boucle tant que la touche espace est
@@ -36,12 +37,12 @@ import java.util.UUID;
  * Le super saut propulse le joueur verticalement ET horizontalement dans la
  * direction où il regarde, avec un son et une traînée de particules pendant
  * tout le vol. Il ne coûte rien à l'usage : seul l'achat initial coûte des
- * tals (voir UpgradeShopMenu).
+ * tals (voir UpgradeShopMenu). Aucun message n'est envoyé à l'exécution du
+ * saut lui-même — seules les particules et le son signalent l'action.
  */
 public class SuperSautListener implements Listener {
 
     private final Plugin2 plugin;
-    private final MessagesManager messages;
     private final UpgradeManager upgrades;
 
     // Dernier état connu de la touche espace par joueur, pour détecter le
@@ -58,7 +59,6 @@ public class SuperSautListener implements Listener {
 
     public SuperSautListener(Plugin2 plugin) {
         this.plugin = plugin;
-        this.messages = plugin.getMessagesManager();
         this.upgrades = plugin.getUpgradeManager();
     }
 
@@ -79,6 +79,7 @@ public class SuperSautListener implements Listener {
 
         if (!plugin.getHubWorldManager().isHubWorld(player.getWorld())) return;
         if (!upgrades.has(uuid, UpgradeManager.SUPER_SAUT)) return;
+        if (!upgrades.isEnabled(uuid, UpgradeManager.SUPER_SAUT)) return;
 
         var config = plugin.getHubWorldManager().getConfig();
         if (!config.getBoolean("super-saut.active", true)) return;
@@ -142,8 +143,6 @@ public class SuperSautListener implements Listener {
         player.getWorld().spawnParticle(Particle.END_ROD, loc.clone().add(0, 0.5, 0), 12, 0.3, 0.3, 0.3, 0.05);
 
         demarrerTraineeParticules(player);
-
-        messages.send(player, "super-saut.effectue");
     }
 
     /**

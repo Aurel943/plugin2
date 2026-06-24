@@ -57,9 +57,6 @@ compass:
   recu: "&b&l✦ &bTu as reçu ta boussole du hub ! Clique-droit pour ouvrir le menu."
   drop-interdit: "&cTu ne peux pas jeter cet objet."
 
-super-saut:
-  effectue: ""
-
 hub-menu:
   titre: "&8&lMenu du Hub"
   bouton-teleport: "&b&lTéléportation"
@@ -80,10 +77,13 @@ upgrade-shop:
     lore-description: "&7Double-tap espace pour bondir&7plus haut et plus loin !"
     lore-prix: "&7Prix : &6{prix} tals &7(achat unique, à vie)"
     lore-cliquer-acheter: "&eClique pour acheter"
-    lore-possede: "&a&l✓ Déjà possédé &7— actif à vie"
-    deja-possede: "&7Tu possèdes déjà cette amélioration."
+    lore-active: "&a&l✓ Activé &7— actif à vie"
+    lore-desactive: "&7&l✗ Désactivé &7— possédé mais éteint"
+    lore-cliquer-toggle: "&eClique pour activer/désactiver"
     solde-insuffisant: "&c&l✗ &cTu n'as pas assez de tals (&6{prix} tals &crequis)."
     achat-reussi: "&a&l✓ &aTu as débloqué le &bSuper Saut&a, pour la vie ! &7Double-tap espace pour l'utiliser."
+    toggle-active: "&a&l✓ &aSuper Saut activé."
+    toggle-desactive: "&7&l✗ &7Super Saut désactivé."
 
 teleport-menu:
   titre: "&8&lTéléportation"

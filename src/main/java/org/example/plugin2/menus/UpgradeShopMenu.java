@@ -2,6 +2,7 @@ package org.example.plugin2.menus;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -45,11 +46,16 @@ public class UpgradeShopMenu implements Listener {
         Inventory inv = Bukkit.createInventory(null, 27, HubMenu.colored(messages.get(TITLE_KEY)));
 
         boolean possede = upgrades.has(player.getUniqueId(), UpgradeManager.SUPER_SAUT);
+        boolean active = possede && upgrades.isEnabled(player.getUniqueId(), UpgradeManager.SUPER_SAUT);
         double prix = plugin.getHubWorldManager().getConfig().getDouble("super-saut.prix", 250.0);
 
         List<String> lore;
         if (possede) {
-            lore = List.of(messages.get("upgrade-shop.super-saut.lore-possede"));
+            String cle = active ? "upgrade-shop.super-saut.lore-active" : "upgrade-shop.super-saut.lore-desactive";
+            lore = List.of(
+                    messages.get(cle),
+                    messages.get("upgrade-shop.super-saut.lore-cliquer-toggle")
+            );
         } else {
             lore = List.of(
                     messages.get("upgrade-shop.super-saut.lore-description"),
@@ -62,7 +68,7 @@ public class UpgradeShopMenu implements Listener {
                 messages.get("upgrade-shop.super-saut.nom"), lore);
         if (possede) {
             ItemMeta meta = item.getItemMeta();
-            meta.setEnchantmentGlintOverride(true);
+            meta.setEnchantmentGlintOverride(active);
             item.setItemMeta(meta);
         }
         inv.setItem(SLOT_SUPER_SAUT, item);
@@ -95,7 +101,15 @@ public class UpgradeShopMenu implements Listener {
 
     private void handleSuperSautClick(Player player) {
         if (upgrades.has(player.getUniqueId(), UpgradeManager.SUPER_SAUT)) {
-            messages.send(player, "upgrade-shop.super-saut.deja-possede");
+            boolean nouvelEtat = upgrades.toggle(player.getUniqueId(), UpgradeManager.SUPER_SAUT);
+
+            String cle = nouvelEtat ? "upgrade-shop.super-saut.toggle-active" : "upgrade-shop.super-saut.toggle-desactive";
+            messages.send(player, cle);
+
+            // Son discret de confirmation : un clic plus aigu pour "activé", plus grave pour "désactivé".
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, nouvelEtat ? 1.4f : 0.8f);
+
+            open(player);
             return;
         }
 
@@ -110,7 +124,7 @@ public class UpgradeShopMenu implements Listener {
         upgrades.grant(player.getUniqueId(), UpgradeManager.SUPER_SAUT);
         messages.send(player, "upgrade-shop.super-saut.achat-reussi");
 
-        // Rafraîchit le menu pour afficher l'état "déjà possédé"
+        // Rafraîchit le menu pour afficher l'état "activé" par défaut après achat
         open(player);
     }
 }
