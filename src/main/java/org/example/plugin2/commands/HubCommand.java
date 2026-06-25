@@ -80,6 +80,7 @@ public class HubCommand implements CommandExecutor {
         plugin.getPetManager().reload();
         plugin.getCosmeticManager().reload();
         plugin.getBossBarManager().reload();
+        plugin.getMotdListener().reload();
         messages.send(sender, "hub.reload.confirme");
     }
 }

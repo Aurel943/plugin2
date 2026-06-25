@@ -26,10 +26,10 @@ public class CoinsCommand implements CommandExecutor {
         this.messages = plugin.getMessagesManager();
     }
 
-    // Formate joliment "1 tal" ou "5 tals" selon la valeur
-    private String formatTals(double amount) {
+    // Formate joliment "1 cristal" ou "5 cristaux" selon la valeur
+    private String formatCristaux(double amount) {
         String nombre = String.format("%.2f", amount);
-        return nombre + (amount == 1.0 ? " tal" : " tals");
+        return nombre + (amount == 1.0 ? " tal" : " cristaux");
     }
 
     // Couleur du podium pour baltop (1er = or, 2ème = gris/argent, 3ème = bronze)
@@ -52,7 +52,7 @@ public class CoinsCommand implements CommandExecutor {
                 return true;
             }
             double balance = economy.getBalance(player.getUniqueId());
-            messages.send(player, "coins.solde-personnel", Map.of("montant", formatTals(balance)));
+            messages.send(player, "coins.solde-personnel", Map.of("montant", formatCristaux(balance)));
             return true;
         }
 
@@ -68,7 +68,7 @@ public class CoinsCommand implements CommandExecutor {
             double balance = economy.getBalance(target.getUniqueId());
             messages.send(sender, "coins.solde-autre", Map.of(
                     "joueur", sousCommande,
-                    "montant", formatTals(balance)
+                    "montant", formatCristaux(balance)
             ));
             return true;
         }
@@ -124,12 +124,12 @@ public class CoinsCommand implements CommandExecutor {
 
         economy.addBalance(target.getUniqueId(), montant);
         messages.send(player, "coins.pay.envoye", Map.of(
-                "montant", formatTals(montant),
+                "montant", formatCristaux(montant),
                 "joueur", target.getName()
         ));
         messages.send(target, "coins.pay.recu", Map.of(
                 "joueur", player.getName(),
-                "montant", formatTals(montant)
+                "montant", formatCristaux(montant)
         ));
     }
 
@@ -152,7 +152,7 @@ public class CoinsCommand implements CommandExecutor {
             case "give" -> {
                 economy.addBalance(target.getUniqueId(), montant);
                 messages.send(sender, "coins.admin.ajoute", Map.of(
-                        "montant", formatTals(montant),
+                        "montant", formatCristaux(montant),
                         "joueur", args[1]
                 ));
             }
@@ -160,7 +160,7 @@ public class CoinsCommand implements CommandExecutor {
                 boolean success = economy.removeBalance(target.getUniqueId(), montant);
                 if (success) {
                     messages.send(sender, "coins.admin.retire", Map.of(
-                            "montant", formatTals(montant),
+                            "montant", formatCristaux(montant),
                             "joueur", args[1]
                     ));
                 } else {
@@ -171,7 +171,7 @@ public class CoinsCommand implements CommandExecutor {
                 economy.setBalance(target.getUniqueId(), montant);
                 messages.send(sender, "coins.admin.defini", Map.of(
                         "joueur", args[1],
-                        "montant", formatTals(montant)
+                        "montant", formatCristaux(montant)
                 ));
             }
         }
@@ -196,7 +196,7 @@ public class CoinsCommand implements CommandExecutor {
                     "rang", String.valueOf(rang),
                     "couleur", podiumTag(rang),
                     "joueur", nom,
-                    "montant", formatTals(entry.getValue())
+                    "montant", formatCristaux(entry.getValue())
             ));
             rang++;
         }

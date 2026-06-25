@@ -14,11 +14,7 @@ import org.example.plugin2.cosmetics.TrailEngine;
 import org.example.plugin2.economy.Database;
 import org.example.plugin2.economy.EconomyManager;
 import org.example.plugin2.economy.UpgradeManager;
-import org.example.plugin2.listeners.CompassListener;
-import org.example.plugin2.listeners.HubRulesListener;
-import org.example.plugin2.listeners.SuperSautListener;
-import org.example.plugin2.listeners.TagChatListener;
-import org.example.plugin2.listeners.WelcomeListener;
+import org.example.plugin2.listeners.*;
 import org.example.plugin2.menus.CosmeticsMenu;
 import org.example.plugin2.menus.HubMenu;
 import org.example.plugin2.menus.PetsMenu;
@@ -33,6 +29,7 @@ import java.util.UUID;
 
 public class Plugin2 extends JavaPlugin {
 
+    private MotdListener motdListener;
     private Database database;
     private EconomyManager economyManager;
     private UpgradeManager upgradeManager;
@@ -90,6 +87,9 @@ public class Plugin2 extends JavaPlugin {
         cosmeticsMenu = new CosmeticsMenu(this);
         compassListener = new CompassListener(this);
 
+        // MOTD dans la liste des serveurs
+        motdListener = new MotdListener(this);
+
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new WelcomeListener(this), this);
         getServer().getPluginManager().registerEvents(hubMenu, this);
@@ -102,6 +102,7 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new HubRulesListener(this, hubWorldManager), this);
         getServer().getPluginManager().registerEvents(new SuperSautListener(this), this);
         getServer().getPluginManager().registerEvents(new TagChatListener(this), this);
+        getServer().getPluginManager().registerEvents(motdListener, this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
@@ -130,6 +131,8 @@ public class Plugin2 extends JavaPlugin {
             saveResource(name, false);
         }
     }
+
+    public MotdListener getMotdListener() { return motdListener; }
 
     public EconomyManager getEconomyManager() {
         return economyManager;

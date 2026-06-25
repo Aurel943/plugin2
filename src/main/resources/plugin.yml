@@ -3,14 +3,14 @@ version: '1.0'
 main: org.example.plugin2.Plugin2
 api-version: '1.21'
 author: Aurelien
-description: Système d'économie avec les tals
+description: Système d'économie avec les cristaux
 
 commands:
   bonjour:
     description: Dit bonjour au joueur
     usage: /bonjour
   coins:
-    description: Gère ton solde de tals
+    description: Gère ton solde de cristaux
     usage: /coins [pay|give|take|set|baltop|reset] [joueur] [montant]
   hub:
     description: Commandes administratives du hub (setspawn, reload).

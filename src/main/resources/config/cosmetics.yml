@@ -15,7 +15,7 @@
 # TRAILS — traînée de particules en boucle qui suit le joueur
 # ---------------------------------------------------------
 # particle     : un Particle Bukkit valide (FLAME, SNOWFLAKE, HEART, etc.)
-# prix         : coût en tals
+# prix         : coût en cristaux
 # display-name : nom affiché dans le menu (couleurs & ou § acceptées)
 # icon         : matériau de l'item dans le menu GUI
 # intervalle-ticks : fréquence d'émission (20 ticks = 1 seconde). Plus bas = plus dense.
@@ -108,7 +108,7 @@ trails:
 # ---------------------------------------------------------
 # format       : texte affiché juste avant le pseudo. Le code couleur DOIT
 #                être inclus dans la chaîne (il n'est pas ajouté automatiquement).
-# prix         : coût en tals
+# prix         : coût en cristaux
 # display-name : nom affiché dans le menu
 # icon         : matériau de l'item dans le menu GUI
 tags:
@@ -149,7 +149,7 @@ tags:
 # material     : matériau utilisé pour l'item (remplace COMPASS visuellement,
 #                la fonction "ouvre le menu au clic droit" reste identique)
 # display-name : nom affiché sur l'item en jeu
-# prix         : coût en tals
+# prix         : coût en cristaux
 # icon         : matériau affiché dans le menu d'achat (souvent = material)
 compass-skins:
 

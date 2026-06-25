@@ -1,0 +1,21 @@
+# =========================================================
+#  motd.yml — MOTD animé affiché dans l'écran multijoueur
+# =========================================================
+# Chaque entrée sous "motds" est un message complet (2 lignes max,
+# c'est une limite du client Minecraft). Les codes couleur & sont acceptés.
+# Le serveur fait défiler ces messages en boucle automatiquement.
+#
+# intervalle-ms : durée d'affichage de chaque MOTD avant de passer
+#                 au suivant, en millisecondes (4000 = 4 secondes).
+
+intervalle-ms: 4000
+
+motds:
+  - ligne1: "&6&l✦ &b&lLEMIENS &6&l✦"
+    ligne2: "&7Hub • Économie • Cosmétiques"
+
+  - ligne1: "&a&l⚡ Rejoins l'aventure ! &a&l⚡"
+    ligne2: "&7Cristaux à gagner • Pets exclusifs"
+
+  - ligne1: "&d&l✨ &fServeur Lemiens &d&l✨"
+    ligne2: "&7Toujours une bonne raison de venir !"

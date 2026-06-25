@@ -5,7 +5,7 @@
 # Chaque pet a :
 #   type        : "MOB" (une vraie entité Bukkit qui marche/vole derrière le joueur)
 #                 ou "ARMOR_STAND" (un support flottant avec un item sur la tête)
-#   prix        : coût en tals
+#   prix        : coût en cristaux
 #   display-name: nom affiché dans le menu (couleurs & ou § acceptées)
 #   icon        : matériau de l'item dans le menu GUI (toujours requis)
 #
