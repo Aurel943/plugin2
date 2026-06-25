@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.example.plugin2.bossbar.HubBossBarManager;
 import org.example.plugin2.commands.CoinsCommand;
 import org.example.plugin2.commands.HubCommand;
+import org.example.plugin2.commands.Plugin2Command;
 import org.example.plugin2.commands.UuidCommand;
 import org.example.plugin2.cosmetics.CosmeticManager;
 import org.example.plugin2.cosmetics.TrailEngine;
@@ -109,6 +110,7 @@ public class Plugin2 extends JavaPlugin {
         getCommand("coins").setExecutor(new CoinsCommand(this));
         getCommand("hub").setExecutor(new HubCommand(this));
         getCommand("uuid").setExecutor(new UuidCommand(this));
+        getCommand("plugin2").setExecutor(new Plugin2Command(this));
     }
 
     @Override
@@ -199,6 +201,11 @@ public class Plugin2 extends JavaPlugin {
     public void getDatabaseResetAll() {
         economyManager.resetAll(database);
     }
+    /** Vide tous les caches mémoire (économie + upgrades) pour forcer une relecture depuis la BDD. */
+    public void reloadAllCaches() {
+        economyManager.reloadAll();
+        upgradeManager.reloadAll();
+    }
 
     /** Petit listener interne : gère le pet actif et le trail cosmétique actif d'un joueur à la connexion/déconnexion. */
     private class PetSessionListener implements org.bukkit.event.Listener {
@@ -227,4 +234,5 @@ public class Plugin2 extends JavaPlugin {
         }
         return false;
     }
+
 }

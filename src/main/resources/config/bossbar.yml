@@ -30,7 +30,7 @@ general:
 #            passer à la suivante.
 slides:
 
-  - texte: "&6&l💰 Ton solde : &e{solde} tals"
+  - texte: "&6&l💰 Ton solde : &e{solde} cristaux"
     duree-secondes: 6
 
   - texte: "&b&l✦ Bienvenue dans le Hub ! Ouvre la boussole pour le menu."

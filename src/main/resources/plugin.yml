@@ -20,6 +20,10 @@ commands:
     description: Affiche l'UUID d'un joueur
     usage: /uuid <pseudo>
     permission: plugin2.admin
+  plugin2:
+    description: Recharge tous les caches du plugin depuis la base de données.
+    usage: /plugin2 reload
+    permission: plugin2.admin
 
 permissions:
   plugin2.admin:

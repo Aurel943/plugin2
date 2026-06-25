@@ -71,6 +71,15 @@ public class UpgradeManager {
         enabledCache.put(cacheKey(uuid, upgradeId), enabled);
     }
 
+    /**
+     * Vide les deux caches (possession + état activé/désactivé) pour tous
+     * les joueurs. À utiliser après une modification SQL directe en base.
+     */
+    public void reloadAll() {
+        cache.clear();
+        enabledCache.clear();
+    }
+
     private String cacheKey(UUID uuid, String upgradeId) {
         return uuid + ":" + upgradeId;
     }

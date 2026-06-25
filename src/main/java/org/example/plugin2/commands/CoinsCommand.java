@@ -28,8 +28,15 @@ public class CoinsCommand implements CommandExecutor {
 
     // Formate joliment "1 cristal" ou "5 cristaux" selon la valeur
     private String formatCristaux(double amount) {
-        String nombre = String.format("%.2f", amount);
-        return nombre + (amount == 1.0 ? " tal" : " cristaux");
+        String nombre;
+        if (amount == Math.floor(amount)) {
+            // Pas de décimales : on affiche un entier propre
+            nombre = String.format("%,.0f", amount);
+        } else {
+            // Décimales présentes : on les garde
+            nombre = String.format("%,.2f", amount);
+        }
+        return nombre + (amount == 1.0 ? " Cristal" : " Cristaux");
     }
 
     // Couleur du podium pour baltop (1er = or, 2ème = gris/argent, 3ème = bronze)

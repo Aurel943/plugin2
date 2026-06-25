@@ -142,3 +142,8 @@ uuid:
   joueur-inconnu: "&cAucun joueur trouvé avec le pseudo '{pseudo}'."
   resultat: "&aUUID de &f{pseudo} &a: &f{uuid}"
   resultat-prefixe: "&aUUID de &f{pseudo} &a: &f"
+
+plugin2:
+  usage: "&7Usage : &e/plugin2 reload"
+  reload:
+    confirme: "&a&l✓ &aTous les caches (économie, améliorations) ont été rechargés depuis la base de données."

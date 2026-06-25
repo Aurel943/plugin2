@@ -40,6 +40,14 @@ public class EconomyManager {
     }
 
     /**
+     * Vide tout le cache économie (tous les joueurs). À utiliser après une
+     * modification massive en SQL direct, ou via un reload global du plugin.
+     */
+    public void reloadAll() {
+        cache.clear();
+    }
+
+    /**
      * Ajoute un montant au solde existant.
      */
     public void addBalance(UUID uuid, double amount) {
