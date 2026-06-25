@@ -103,45 +103,6 @@ trails:
     vitesse: 0.01
     hauteur: 0.9
 
-# ---------------------------------------------------------
-# TAGS — préfixe coloré affiché devant le pseudo dans le chat
-# ---------------------------------------------------------
-# format       : texte affiché juste avant le pseudo. Le code couleur DOIT
-#                être inclus dans la chaîne (il n'est pas ajouté automatiquement).
-# prix         : coût en cristaux
-# display-name : nom affiché dans le menu
-# icon         : matériau de l'item dans le menu GUI
-tags:
-
-  debutant:
-    format: "&7[Débutant] "
-    prix: 0
-    display-name: "&7Tag Débutant"
-    icon: PAPER
-
-  vip:
-    format: "&6[VIP] "
-    prix: 500
-    display-name: "&6&lTag VIP"
-    icon: GOLD_INGOT
-
-  legende:
-    format: "&d&l[Légende] "
-    prix: 1500
-    display-name: "&d&lTag Légende"
-    icon: NETHER_STAR
-
-  pro:
-    format: "&b[PRO] "
-    prix: 750
-    display-name: "&bTag Pro"
-    icon: DIAMOND
-
-  hardcore:
-    format: "&4&l[Hardcore] "
-    prix: 1000
-    display-name: "&4&lTag Hardcore"
-    icon: REDSTONE
 
 # ---------------------------------------------------------
 # COMPASS-SKINS — apparence custom de la boussole du hub

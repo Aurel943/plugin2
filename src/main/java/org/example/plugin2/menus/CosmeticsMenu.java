@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Menu des cosmétiques : un écran d'accueil avec 3 onglets (trails, tags,
+ * Menu des cosmétiques : un écran d'accueil avec 3 onglets (trails,
  * skins de boussole), chacun listant les cosmétiques de cosmetics.yml avec
  * le même pattern achat/équipement que PetsMenu (possédé → cliquer équipe/
  * déséquipe ; non possédé → cliquer achète puis équipe directement).
@@ -36,11 +36,9 @@ public class CosmeticsMenu implements Listener {
 
     private static final String TITLE_ACCUEIL = "cosmetics-menu.titre-accueil";
     private static final String TITLE_TRAILS = "cosmetics-menu.titre-trails";
-    private static final String TITLE_TAGS = "cosmetics-menu.titre-tags";
     private static final String TITLE_SKINS = "cosmetics-menu.titre-skins";
 
     private static final int SLOT_ACCUEIL_TRAILS = 11;
-    private static final int SLOT_ACCUEIL_TAGS = 13;
     private static final int SLOT_ACCUEIL_SKINS = 15;
     private static final int SLOT_ACCUEIL_RETOUR = 22;
     private static final int SLOT_RETOUR_SOUS_MENU = 40;
@@ -65,10 +63,6 @@ public class CosmeticsMenu implements Listener {
         inv.setItem(SLOT_ACCUEIL_TRAILS, HubMenu.buildItem(Material.FIRE_CHARGE,
                 messages.get("cosmetics-menu.bouton-trails"),
                 List.of(messages.get("cosmetics-menu.bouton-trails-lore"))));
-
-        inv.setItem(SLOT_ACCUEIL_TAGS, HubMenu.buildItem(Material.NAME_TAG,
-                messages.get("cosmetics-menu.bouton-tags"),
-                List.of(messages.get("cosmetics-menu.bouton-tags-lore"))));
 
         inv.setItem(SLOT_ACCUEIL_SKINS, HubMenu.buildItem(Material.COMPASS,
                 messages.get("cosmetics-menu.bouton-skins"),
@@ -96,37 +90,6 @@ public class CosmeticsMenu implements Listener {
             boolean equipped = def.id.equals(cosmetics.getEquipped(player.getUniqueId(), CosmeticManager.CATEGORY_TRAIL));
 
             ItemStack item = buildCosmeticItem(def.icon, def.displayName, def.prix, owned, equipped);
-            inv.setItem(slot, item);
-            slotToCosmeticId.put(slot, def.id);
-            slot++;
-        }
-
-        inv.setItem(SLOT_RETOUR_SOUS_MENU, HubMenu.buildItem(Material.ARROW, messages.get("cosmetics-menu.retour"), List.of()));
-        player.openInventory(inv);
-    }
-
-    // ---------------------------------------------------------------
-    // Sous-menu : tags de chat
-    // ---------------------------------------------------------------
-
-    public void openTags(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 45, HubMenu.colored(messages.get(TITLE_TAGS)));
-        slotToCosmeticId.clear();
-
-        int slot = 0;
-        for (CosmeticManager.TagDefinition def : cosmetics.getTagDefinitions().values()) {
-            if (slot >= 36) break;
-
-            boolean owned = cosmetics.owns(player.getUniqueId(), CosmeticManager.CATEGORY_TAG, def.id);
-            boolean equipped = def.id.equals(cosmetics.getEquipped(player.getUniqueId(), CosmeticManager.CATEGORY_TAG));
-
-            List<String> lore = new ArrayList<>();
-            lore.add(messages.get("cosmetics-menu.tag-apercu", Map.of("apercu", HubMenu.colored(def.format) + "Pseudo")));
-            lore.addAll(buildStatusLore(def.prix, owned, equipped));
-
-            ItemStack item = HubMenu.buildItem(def.icon, def.displayName, lore);
-            if (equipped) glow(item);
-
             inv.setItem(slot, item);
             slotToCosmeticId.put(slot, def.id);
             slot++;
@@ -206,8 +169,6 @@ public class CosmeticsMenu implements Listener {
             handleAccueilClick(event, player);
         } else if (invTitle.equals(HubMenu.colored(messages.get(TITLE_TRAILS)))) {
             handleSousMenuClick(event, player, CosmeticManager.CATEGORY_TRAIL, this::openTrails);
-        } else if (invTitle.equals(HubMenu.colored(messages.get(TITLE_TAGS)))) {
-            handleSousMenuClick(event, player, CosmeticManager.CATEGORY_TAG, this::openTags);
         } else if (invTitle.equals(HubMenu.colored(messages.get(TITLE_SKINS)))) {
             handleSousMenuClick(event, player, CosmeticManager.CATEGORY_COMPASS_SKIN, this::openSkins);
         }
@@ -220,7 +181,6 @@ public class CosmeticsMenu implements Listener {
 
         switch (slot) {
             case SLOT_ACCUEIL_TRAILS -> openTrails(player);
-            case SLOT_ACCUEIL_TAGS -> openTags(player);
             case SLOT_ACCUEIL_SKINS -> openSkins(player);
             case SLOT_ACCUEIL_RETOUR -> plugin.getHubMenu().open(player);
             default -> { /* rien */ }
@@ -269,7 +229,7 @@ public class CosmeticsMenu implements Listener {
         }
     }
 
-    /** Équipe un cosmétique : met à jour la base ET applique l'effet en jeu (trail/tag/skin). */
+    /** Équipe un cosmétique : met à jour la base ET applique l'effet en jeu (trail/skin). */
     private void equip(Player player, String category, String cosmeticId) {
         cosmetics.setEquipped(player.getUniqueId(), category, cosmeticId);
 
@@ -278,8 +238,6 @@ public class CosmeticsMenu implements Listener {
         } else if (category.equals(CosmeticManager.CATEGORY_COMPASS_SKIN)) {
             plugin.getCompassListener().refreshCompassAppearance(player);
         }
-        // Les tags (CATEGORY_TAG) sont lus directement depuis la base au moment
-        // d'envoyer un message de chat — pas d'effet "en jeu" immédiat à appliquer ici.
     }
 
     private void unequip(Player player, String category) {
@@ -296,9 +254,6 @@ public class CosmeticsMenu implements Listener {
         if (category.equals(CosmeticManager.CATEGORY_TRAIL)) {
             CosmeticManager.TrailDefinition def = cosmetics.getTrail(cosmeticId);
             return def != null ? def.prix : 0;
-        } else if (category.equals(CosmeticManager.CATEGORY_TAG)) {
-            CosmeticManager.TagDefinition def = cosmetics.getTag(cosmeticId);
-            return def != null ? def.prix : 0;
         } else {
             CosmeticManager.CompassSkinDefinition def = cosmetics.getCompassSkin(cosmeticId);
             return def != null ? def.prix : 0;
@@ -308,9 +263,6 @@ public class CosmeticsMenu implements Listener {
     private String getDisplayName(String category, String cosmeticId) {
         if (category.equals(CosmeticManager.CATEGORY_TRAIL)) {
             CosmeticManager.TrailDefinition def = cosmetics.getTrail(cosmeticId);
-            return def != null ? def.displayName : cosmeticId;
-        } else if (category.equals(CosmeticManager.CATEGORY_TAG)) {
-            CosmeticManager.TagDefinition def = cosmetics.getTag(cosmeticId);
             return def != null ? def.displayName : cosmeticId;
         } else {
             CosmeticManager.CompassSkinDefinition def = cosmetics.getCompassSkin(cosmeticId);

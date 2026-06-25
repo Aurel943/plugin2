@@ -132,15 +132,17 @@ public class RankCommand implements CommandExecutor {
     }
 
     // /rank list
+// /rank list — triés du rank le plus haut (poids le plus grand) au plus bas
     private void handleList(CommandSender sender) {
         messages.send(sender, "rank.list.titre");
-        for (Database.RankData rank : ranks.getAllRanks()) {
-            messages.send(sender, "rank.list.ligne", Map.of(
-                    "rank", rank.rankId,
-                    "prefix", rank.prefix,
-                    "nb-permissions", String.valueOf(rank.permissions.size())
-            ));
-        }
+
+        ranks.getAllRanks().stream()
+                .sorted((a, b) -> Integer.compare(b.poids, a.poids))
+                .forEach(rank -> messages.send(sender, "rank.list.ligne", Map.of(
+                        "rank", rank.rankId,
+                        "prefix", rank.prefix,
+                        "nb-permissions", String.valueOf(rank.permissions.size())
+                )));
     }
 
     // /rank info <id>

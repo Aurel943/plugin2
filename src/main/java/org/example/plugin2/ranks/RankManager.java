@@ -146,7 +146,7 @@ public class RankManager {
         }
 
         Database.RankData rank = getPlayerRank(uuid);
-        if (rank == null) return; // ne devrait pas arriver (rank "joueur" toujours présent)
+        if (rank == null) return;
 
         PermissionAttachment attachment = player.addAttachment(plugin());
         for (String permission : rank.permissions) {
@@ -155,6 +155,14 @@ public class RankManager {
             }
         }
         attachments.put(uuid, attachment);
+
+        // Tab-list : préfixe le pseudo affiché avec le prefix du rank (Adventure Component).
+        String prefixLegacy = rank.prefix.isEmpty() ? "" : rank.prefix + " ";
+        String coloredLegacy = org.bukkit.ChatColor.translateAlternateColorCodes('&', prefixLegacy);
+        net.kyori.adventure.text.Component tabName = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                .legacySection().deserialize(coloredLegacy)
+                .append(net.kyori.adventure.text.Component.text(player.getName()));
+        player.playerListName(tabName);
     }
 
     /** Retire l'attachment d'un joueur à sa déconnexion (évite une fuite mémoire). */

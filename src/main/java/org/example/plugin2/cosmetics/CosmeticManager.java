@@ -18,14 +18,14 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
- * Gère les trois catégories de cosmétiques (trails, tags, compass-skins) :
+ * Gère les deux catégories de cosmétiques (trails, compass-skins) :
  * chargement des définitions depuis cosmetics.yml, et possession/équipement
  * persistés en SQLite via Database (table "cosmetics", partagée par les
- * trois catégories — voir Database.grantCosmetic / setEquippedCosmetic).
+ * deux catégories — voir Database.grantCosmetic / setEquippedCosmetic).
  *
- * Une seule classe pour les trois catégories plutôt que trois managers
+ * Une seule classe pour les deux catégories plutôt que deux managers
  * séparés : la logique d'achat/équipement est strictement identique, seule
- * la "forme" de la définition change (TrailDefinition / TagDefinition /
+ * la "forme" de la définition change (TrailDefinition /
  * CompassSkinDefinition). Le menu (CosmeticsMenu) et le moteur de particules
  * (TrailEngine) viennent ensuite consommer ces définitions.
  */
@@ -33,7 +33,6 @@ public class CosmeticManager {
 
     /** Identifiants des catégories, utilisés comme clé dans la table "cosmetics". */
     public static final String CATEGORY_TRAIL = "trail";
-    public static final String CATEGORY_TAG = "tag";
     public static final String CATEGORY_COMPASS_SKIN = "compass-skin";
 
     /** Définition d'un trail de particules (catégorie "trail"). */
@@ -67,23 +66,6 @@ public class CosmeticManager {
         }
     }
 
-    /** Définition d'un tag de chat (catégorie "tag"). */
-    public static class TagDefinition {
-        public final String id;
-        public final String format;
-        public final double prix;
-        public final String displayName;
-        public final Material icon;
-
-        public TagDefinition(String id, String format, double prix, String displayName, Material icon) {
-            this.id = id;
-            this.format = format;
-            this.prix = prix;
-            this.displayName = displayName;
-            this.icon = icon;
-        }
-    }
-
     /** Définition d'un skin de boussole (catégorie "compass-skin"). */
     public static class CompassSkinDefinition {
         public final String id;
@@ -108,7 +90,6 @@ public class CosmeticManager {
 
     // LinkedHashMap pour préserver l'ordre de cosmetics.yml dans les menus
     private final Map<String, TrailDefinition> trails = new LinkedHashMap<>();
-    private final Map<String, TagDefinition> tags = new LinkedHashMap<>();
     private final Map<String, CompassSkinDefinition> compassSkins = new LinkedHashMap<>();
 
     public CosmeticManager(Plugin2 plugin, Database database) {
@@ -133,10 +114,9 @@ public class CosmeticManager {
         }
 
         loadTrails(config);
-        loadTags(config);
         loadCompassSkins(config);
 
-        logger.info(trails.size() + " trail(s), " + tags.size() + " tag(s), " + compassSkins.size()
+        logger.info(trails.size() + " trail(s), " + compassSkins.size()
                 + " skin(s) de boussole chargés depuis cosmetics.yml.");
     }
 
@@ -169,25 +149,6 @@ public class CosmeticManager {
                     s.getDouble("rayon-z", 0.25),
                     s.getDouble("vitesse", 0.0),
                     s.getDouble("hauteur", 0.1)
-            ));
-        }
-    }
-
-    private void loadTags(YamlConfiguration config) {
-        tags.clear();
-        ConfigurationSection section = config.getConfigurationSection("tags");
-        if (section == null) return;
-
-        for (String id : section.getKeys(false)) {
-            ConfigurationSection s = section.getConfigurationSection(id);
-            if (s == null) continue;
-
-            tags.put(id, new TagDefinition(
-                    id,
-                    s.getString("format", ""),
-                    s.getDouble("prix", 0),
-                    s.getString("display-name", id),
-                    parseMaterial(s.getString("icon", "PAPER"), Material.PAPER)
             ));
         }
     }
@@ -239,14 +200,6 @@ public class CosmeticManager {
 
     public TrailDefinition getTrail(String id) {
         return trails.get(id);
-    }
-
-    public Map<String, TagDefinition> getTagDefinitions() {
-        return tags;
-    }
-
-    public TagDefinition getTag(String id) {
-        return tags.get(id);
     }
 
     public Map<String, CompassSkinDefinition> getCompassSkinDefinitions() {
