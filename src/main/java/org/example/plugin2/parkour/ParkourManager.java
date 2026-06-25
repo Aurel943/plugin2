@@ -348,7 +348,7 @@ public class ParkourManager {
         inv.clear();
         inv.setArmorContents(new ItemStack[4]);
 
-        inv.setItem(5, creerObjetRetour());
+        inv.setItem(4, creerObjetRetour());
 
         // Suspend le pet/trail visuellement sans toucher à leur équipement en
         // base (mêmes méthodes que celles utilisées à la déconnexion).
