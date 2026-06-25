@@ -24,6 +24,11 @@ commands:
     description: Recharge tous les caches du plugin depuis la base de données.
     usage: /plugin2 reload
     permission: plugin2.admin
+  rank:
+    description: Gère les ranks et leurs permissions.
+    usage: /rank <create|delete|set|addperm|removeperm|list|info>
+    permission: plugin2.admin
+
 
 permissions:
   plugin2.admin:

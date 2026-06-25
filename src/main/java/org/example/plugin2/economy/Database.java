@@ -105,6 +105,9 @@ public class Database {
         createPetsTable();
         createUpgradesTable();
         createCosmeticsTable();
+        createRanksTable();
+        createPlayerRanksTable();
+        ensureDefaultRankExists();
     }
 
     private void createEconomyTable() throws SQLException {
@@ -517,6 +520,201 @@ public class Database {
     public void disconnect() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
+        }
+    }
+    // ---------------------------------------------------------------
+// Ranks et permissions
+// ---------------------------------------------------------------
+
+    private void createRanksTable() throws SQLException {
+        // Un rank = un id technique ("vip", "admin"...), un préfixe d'affichage,
+        // un poids (pour départager l'affichage si besoin plus tard, ex: scoreboard/tab),
+        // et la liste de ses permissions stockée en une seule colonne texte
+        // (une permission par ligne — suffisant ici, pas besoin d'une table séparée
+        // tant que le nombre de permissions par rank reste raisonnable).
+        String sql = """
+        CREATE TABLE IF NOT EXISTS ranks (
+            rank_id VARCHAR(32) PRIMARY KEY,
+            prefix VARCHAR(64) NOT NULL DEFAULT '',
+            poids INT NOT NULL DEFAULT 0,
+            permissions TEXT NOT NULL DEFAULT ''
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        """;
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
+    private void createPlayerRanksTable() throws SQLException {
+        // Un joueur a AU PLUS un rank actif (clé primaire = uuid seul, pas
+        // uuid+rank_id). Si on veut du cumul de ranks plus tard, il faudra
+        // changer cette clé primaire en (uuid, rank_id) — à garder en tête.
+        String sql = """
+        CREATE TABLE IF NOT EXISTS player_ranks (
+            uuid VARCHAR(36) PRIMARY KEY,
+            rank_id VARCHAR(32) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        """;
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
+    /** Crée le rank par défaut "joueur" s'il n'existe pas encore (rank de base, sans permission spéciale). */
+    private void ensureDefaultRankExists() throws SQLException {
+        String sql = "INSERT IGNORE INTO ranks (rank_id, prefix, poids, permissions) VALUES (?, ?, ?, ?)";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "joueur");
+            ps.setString(2, "&7[Joueur]");
+            ps.setInt(3, 0);
+            ps.setString(4, "");
+            ps.executeUpdate();
+        }
+    }
+
+    /** Crée un rank, ou met à jour son préfixe/poids s'il existe déjà (les permissions ne sont pas touchées ici). */
+    public void createOrUpdateRank(String rankId, String prefix, int poids) {
+        String sql = """
+        INSERT INTO ranks (rank_id, prefix, poids, permissions) VALUES (?, ?, ?, '')
+        ON DUPLICATE KEY UPDATE prefix = VALUES(prefix), poids = VALUES(poids);
+        """;
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, rankId);
+            ps.setString(2, prefix);
+            ps.setInt(3, poids);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la création/mise à jour d'un rank : " + e.getMessage());
+        }
+    }
+
+    /** Supprime un rank. Les joueurs qui l'avaient devront être réassignés manuellement (pas de cascade automatique). */
+    public boolean deleteRank(String rankId) {
+        String sql = "DELETE FROM ranks WHERE rank_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, rankId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la suppression d'un rank : " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** Ajoute une permission à un rank (ne fait rien si elle y est déjà). */
+    public void addPermissionToRank(String rankId, String permission) {
+        RankData data = getRank(rankId);
+        if (data == null) return;
+        if (data.permissions.contains(permission)) return;
+
+        java.util.List<String> updated = new java.util.ArrayList<>(data.permissions);
+        updated.add(permission);
+        savePermissions(rankId, updated);
+    }
+
+    /** Retire une permission d'un rank. */
+    public void removePermissionFromRank(String rankId, String permission) {
+        RankData data = getRank(rankId);
+        if (data == null) return;
+
+        java.util.List<String> updated = new java.util.ArrayList<>(data.permissions);
+        updated.remove(permission);
+        savePermissions(rankId, updated);
+    }
+
+    private void savePermissions(String rankId, java.util.List<String> permissions) {
+        String joined = String.join("\n", permissions);
+        String sql = "UPDATE ranks SET permissions = ? WHERE rank_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, joined);
+            ps.setString(2, rankId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de l'enregistrement des permissions d'un rank : " + e.getMessage());
+        }
+    }
+
+    /** Petite structure de transport pour représenter un rank lu en base (prefix, poids, permissions). */
+    public static class RankData {
+        public final String rankId;
+        public final String prefix;
+        public final int poids;
+        public final java.util.List<String> permissions;
+
+        public RankData(String rankId, String prefix, int poids, java.util.List<String> permissions) {
+            this.rankId = rankId;
+            this.prefix = prefix;
+            this.poids = poids;
+            this.permissions = permissions;
+        }
+    }
+
+    /** Lit un rank précis depuis la base, ou null s'il n'existe pas. */
+    public RankData getRank(String rankId) {
+        String sql = "SELECT prefix, poids, permissions FROM ranks WHERE rank_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, rankId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String perms = rs.getString("permissions");
+                java.util.List<String> permList = perms.isEmpty()
+                        ? java.util.List.of()
+                        : java.util.Arrays.asList(perms.split("\n"));
+                return new RankData(rankId, rs.getString("prefix"), rs.getInt("poids"), permList);
+            }
+            return null;
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture d'un rank : " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Retourne tous les ranks existants. Utilisé pour /rank list et pour précharger le cache. */
+    public java.util.List<RankData> getAllRanks() {
+        java.util.List<RankData> result = new java.util.ArrayList<>();
+        String sql = "SELECT rank_id, prefix, poids, permissions FROM ranks";
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                String perms = rs.getString("permissions");
+                java.util.List<String> permList = perms.isEmpty()
+                        ? java.util.List.of()
+                        : java.util.Arrays.asList(perms.split("\n"));
+                result.add(new RankData(rs.getString("rank_id"), rs.getString("prefix"), rs.getInt("poids"), permList));
+            }
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture de tous les ranks : " + e.getMessage());
+        }
+        return result;
+    }
+
+    /** Retourne le rank_id du joueur, ou "joueur" (rank par défaut) s'il n'a aucune ligne en base. */
+    public String getPlayerRankId(UUID uuid) {
+        String sql = "SELECT rank_id FROM player_ranks WHERE uuid = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("rank_id");
+            }
+            return "joueur";
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture du rank d'un joueur : " + e.getMessage());
+            return "joueur";
+        }
+    }
+
+    /** Définit le rank d'un joueur (crée la ligne si besoin, la remplace sinon — un seul rank actif à la fois). */
+    public void setPlayerRank(UUID uuid, String rankId) {
+        String sql = """
+        INSERT INTO player_ranks (uuid, rank_id) VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE rank_id = VALUES(rank_id);
+        """;
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, rankId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de l'attribution d'un rank : " + e.getMessage());
         }
     }
 }

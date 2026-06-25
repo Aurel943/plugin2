@@ -82,4 +82,8 @@ public class EconomyManager {
         database.resetAll();
         cache.clear();
     }
+    /** Vide le cache d'un seul joueur (à utiliser au join, pour repartir d'un état frais — utile dès qu'il y a plusieurs serveurs). */
+    public void invalidate(UUID uuid) {
+        cache.remove(uuid);
+    }
 }

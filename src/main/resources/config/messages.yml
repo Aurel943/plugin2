@@ -147,3 +147,41 @@ plugin2:
   usage: "&7Usage : &e/plugin2 reload"
   reload:
     confirme: "&a&l✓ &aTous les caches (économie, améliorations) ont été rechargés depuis la base de données."
+
+rank:
+  usage: "&7Usage : &e/rank <create|delete|set|addperm|removeperm|list|info>"
+  inexistant: "&c&l✗ &cLe rank '&e{rank}&c' n'existe pas."
+
+  create:
+    usage: "&7Usage : &e/rank create <id> <prefix> [poids]"
+    confirme: "&a&l✓ &aLe rank '&e{rank}&a' a été créé/mis à jour."
+
+  delete:
+    usage: "&7Usage : &e/rank delete <id>"
+    confirme: "&a&l✓ &aLe rank '&e{rank}&a' a été supprimé."
+    inexistant: "&c&l✗ &cLe rank '&e{rank}&c' n'existait pas."
+    rank-par-defaut-protege: "&c&l✗ &cImpossible de supprimer le rank par défaut."
+
+  set:
+    usage: "&7Usage : &e/rank set <joueur> <id>"
+    confirme: "&a&l✓ &a&e{joueur} &aa désormais le rank '&e{rank}&a'."
+
+  addperm:
+    usage: "&7Usage : &e/rank addperm <id> <permission>"
+    confirme: "&a&l✓ &aPermission '&e{permission}&a' ajoutée au rank '&e{rank}&a'."
+
+  removeperm:
+    usage: "&7Usage : &e/rank removeperm <id> <permission>"
+    confirme: "&a&l✓ &aPermission '&e{permission}&a' retirée du rank '&e{rank}&a'."
+
+  list:
+    titre: "&6&l★═══ Liste des ranks ═══★"
+    ligne: "&e{rank} &7— &fPrefix : {prefix} &7— &f{nb-permissions} permission(s)"
+
+  info:
+    usage: "&7Usage : &e/rank info <id>"
+    titre: "&6&l★═══ Rank : {rank} ═══★"
+    prefix: "&7Prefix : &f{prefix}"
+    poids: "&7Poids : &f{poids}"
+    aucune-permission: "&7Aucune permission définie."
+    ligne-permission: "&7- &f{permission}"

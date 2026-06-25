@@ -6,10 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.example.plugin2.bossbar.HubBossBarManager;
-import org.example.plugin2.commands.CoinsCommand;
-import org.example.plugin2.commands.HubCommand;
-import org.example.plugin2.commands.Plugin2Command;
-import org.example.plugin2.commands.UuidCommand;
+import org.example.plugin2.commands.*;
 import org.example.plugin2.cosmetics.CosmeticManager;
 import org.example.plugin2.cosmetics.TrailEngine;
 import org.example.plugin2.economy.Database;
@@ -23,6 +20,8 @@ import org.example.plugin2.menus.TeleportMenu;
 import org.example.plugin2.menus.UpgradeShopMenu;
 import org.example.plugin2.messages.MessagesManager;
 import org.example.plugin2.pets.PetManager;
+import org.example.plugin2.ranks.RankJoinListener;
+import org.example.plugin2.ranks.RankManager;
 import org.example.plugin2.world.HubWorldManager;
 
 import java.util.Map;
@@ -39,6 +38,7 @@ public class Plugin2 extends JavaPlugin {
     private CosmeticManager cosmeticManager;
     private TrailEngine trailEngine;
     private HubBossBarManager bossBarManager;
+    private RankManager rankManager;
 
     private HubMenu hubMenu;
     private TeleportMenu teleportMenu;
@@ -64,6 +64,8 @@ public class Plugin2 extends JavaPlugin {
         database.connect(this);
         economyManager = new EconomyManager(database);
         upgradeManager = new UpgradeManager(database);
+        rankManager = new RankManager(database);
+        rankManager.setPluginInstance(this);
 
         // Managers de contenu paramétrable
         messagesManager = new MessagesManager(this);
@@ -104,6 +106,7 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SuperSautListener(this), this);
         getServer().getPluginManager().registerEvents(new TagChatListener(this), this);
         getServer().getPluginManager().registerEvents(motdListener, this);
+        getServer().getPluginManager().registerEvents(new RankJoinListener(this), this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
@@ -111,6 +114,7 @@ public class Plugin2 extends JavaPlugin {
         getCommand("hub").setExecutor(new HubCommand(this));
         getCommand("uuid").setExecutor(new UuidCommand(this));
         getCommand("plugin2").setExecutor(new Plugin2Command(this));
+        getCommand("rank").setExecutor(new RankCommand(this));
     }
 
     @Override
@@ -192,6 +196,8 @@ public class Plugin2 extends JavaPlugin {
         return hubWorldManager;
     }
 
+    public RankManager getRankManager() { return rankManager; }
+
     // Petits "ponts" pour que CoinsCommand puisse accéder à la database
     // sans avoir à la connaître directement (juste via Plugin2)
     public Map<UUID, Double> getDatabaseAllBalances() {
@@ -205,6 +211,7 @@ public class Plugin2 extends JavaPlugin {
     public void reloadAllCaches() {
         economyManager.reloadAll();
         upgradeManager.reloadAll();
+        rankManager.reloadAll();
     }
 
     /** Petit listener interne : gère le pet actif et le trail cosmétique actif d'un joueur à la connexion/déconnexion. */
