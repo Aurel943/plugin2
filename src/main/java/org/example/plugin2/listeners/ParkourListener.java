@@ -141,10 +141,15 @@ public class ParkourListener implements Listener {
         // parkour : sa sauvegarde d'inventaire est encore en base à sa
         // reconnexion. On restaure immédiatement avant qu'il ne touche à quoi
         // que ce soit, pour ne jamais le laisser dans un inventaire vidé.
+        // Le joueur réapparaît ici au spawn par défaut du serveur (donc déjà
+        // dans le bon monde), pas besoin d'attendre une téléportation avant
+        // de réactiver pet/trail — contrairement à la sortie normale du
+        // parkour, voir ParkourManager.restaurerEtRenvoyerAuHub().
         Player player = event.getPlayer();
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (player.isOnline()) {
-                parkour.restaurerInventaire(player);
+                var backup = parkour.restaurerInventaire(player);
+                parkour.reactiverPetEtTrailApresRestauration(player, backup);
             }
         });
     }

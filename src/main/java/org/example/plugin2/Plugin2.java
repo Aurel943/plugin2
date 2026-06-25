@@ -116,6 +116,7 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(motdListener, this);
         getServer().getPluginManager().registerEvents(new RankJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new ParkourListener(this), this);
+        getServer().getPluginManager().registerEvents(new ParkourRulesListener(this), this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)

@@ -1,7 +1,7 @@
 package org.example.plugin2.parkour;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
+import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -217,6 +217,10 @@ public class ParkourManager {
      * dans parkour.yml. À appeler une seule fois dans Plugin2.onEnable(),
      * après la construction de ce manager — suit le même principe que
      * HubWorldManager.setupWorld().
+     *
+     * Le monde est un VOID complet (aucun bloc généré, aucune structure,
+     * aucune grotte) — voir ViderGenerateur ci-dessous. Le parcours lui-même
+     * est entièrement construit à la main en jeu, pas généré par le plugin.
      */
     public void setupWorlds() {
         for (ParkourDefinition def : definitions.values()) {
@@ -225,16 +229,34 @@ public class ParkourManager {
                 mondesCharges.put(def.mondeNom, existing);
                 continue;
             }
-            World monde = Bukkit.createWorld(new WorldCreator(def.mondeNom));
+
+            WorldCreator creator = new WorldCreator(def.mondeNom);
+            creator.generator(new ViderGenerateur());
+            creator.generateStructures(false);
+
+            World monde = Bukkit.createWorld(creator);
             if (monde != null) {
                 // Pas de météo ni de mob hostile par défaut dans un monde de parkour —
                 // évite des morts/dégâts non liés au parkour lui-même.
-                monde.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-                monde.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+                monde.setGameRule(GameRules.ADVANCE_WEATHER, false);
+                monde.setGameRule(GameRules.SPAWN_MOBS, false);
                 mondesCharges.put(def.mondeNom, monde);
-                logger.info("Monde parkour '" + def.mondeNom + "' créé.");
+                logger.info("Monde parkour '" + def.mondeNom + "' créé (void).");
             }
         }
+    }
+
+    /**
+     * Générateur de chunks qui ne place absolument aucun bloc (void total) :
+     * aucun terrain, aucune grotte, aucun minerai, aucune structure naturelle.
+     * Le parcours est entièrement construit à la main en jeu par-dessus ce
+     * vide — voir setupWorlds() ci-dessus.
+     */
+    private static class ViderGenerateur extends org.bukkit.generator.ChunkGenerator {
+        // Aucune méthode à surcharger : le comportement par défaut de
+        // ChunkGenerator (sans rien redéfinir) ne place déjà aucun bloc.
+        // La classe existe uniquement pour avoir un type concret à passer
+        // à WorldCreator.generator(), qui attend un ChunkGenerator non-null.
     }
 
     public void reload() {
@@ -450,8 +472,31 @@ public class ParkourManager {
     }
 
     private void restaurerEtRenvoyerAuHub(Player player) {
-        restaurerInventaire(player);
+        // Important : on lit/restaure l'inventaire et on récupère l'état
+        // pet/trail AVANT de téléporter, mais on ne réactive réellement
+        // pet/trail qu'APRÈS la téléportation. PetManager et TrailEngine
+        // font apparaître/recommencer leur effet à la position ACTUELLE du
+        // joueur au moment de l'appel — les appeler avant la téléportation
+        // ferait spawner le pet/trail dans le monde parkour, pendant que le
+        // joueur part vers le hub, ce qui cassait le suivi (Location.distance()
+        // entre deux mondes différents → exception en boucle dans la tâche
+        // de suivi du pet).
+        Database.InventoryBackup backup = restaurerInventaire(player);
+
         plugin.getHubWorldManager().teleportToHub(player);
+
+        reactiverPetEtTrailSiBesoin(player, backup);
+    }
+
+    /** Réactive pet/trail si la sauvegarde indique qu'ils étaient actifs. Ne fait rien si backup est null. */
+    private void reactiverPetEtTrailSiBesoin(Player player, Database.InventoryBackup backup) {
+        if (backup == null) return;
+        if (backup.hadPetEquipped) {
+            plugin.getPetManager().handlePlayerJoin(player);
+        }
+        if (backup.hadTrailEquipped) {
+            plugin.getTrailEngine().handlePlayerJoin(player);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -460,14 +505,23 @@ public class ParkourManager {
 
     /**
      * Restaure l'inventaire/armure du joueur depuis la sauvegarde en base
-     * (s'il y en a une), réactive pet/trail si besoin, puis supprime la
-     * sauvegarde. Appelée à la sortie normale du parkour ET au join si une
-     * sauvegarde existait encore (cas d'un crash serveur pendant un run —
-     * voir ParkourListener.onJoin).
+     * (s'il y en a une), puis supprime la sauvegarde. NE réactive PAS
+     * pet/trail elle-même (voir restaurerEtRenvoyerAuHub pour comprendre
+     * pourquoi l'ordre avec la téléportation compte) — retourne la
+     * sauvegarde lue (ou null) pour que l'appelant décide du bon moment.
+     *
+     * Appelée à la sortie normale du parkour (via restaurerEtRenvoyerAuHub)
+     * ET directement au join si une sauvegarde existait encore (cas d'un
+     * crash serveur pendant un run — voir ParkourListener.onJoin). Dans ce
+     * 2e cas le joueur est déjà dans le bon monde (le hub, où il spawn par
+     * défaut), donc réactiver pet/trail immédiatement ne pose pas de problème
+     * — voir l'appel à reactiverPetEtTrailSiBesoin() dans ParkourListener.
+     *
+     * @return la sauvegarde lue, ou null s'il n'y en avait aucune.
      */
-    public void restaurerInventaire(Player player) {
+    public Database.InventoryBackup restaurerInventaire(Player player) {
         Database.InventoryBackup backup = database.getInventoryBackup(player.getUniqueId());
-        if (backup == null) return;
+        if (backup == null) return null;
 
         PlayerInventory inv = player.getInventory();
         inv.setContents(deserialiser(backup.inventoryData));
@@ -475,12 +529,12 @@ public class ParkourManager {
 
         database.deleteInventoryBackup(player.getUniqueId());
 
-        if (backup.hadPetEquipped) {
-            plugin.getPetManager().handlePlayerJoin(player);
-        }
-        if (backup.hadTrailEquipped) {
-            plugin.getTrailEngine().handlePlayerJoin(player);
-        }
+        return backup;
+    }
+
+    /** Réactive pet/trail pour ce joueur si la sauvegarde donnée l'indique. Accessible depuis ParkourListener. */
+    public void reactiverPetEtTrailApresRestauration(Player player, Database.InventoryBackup backup) {
+        reactiverPetEtTrailSiBesoin(player, backup);
     }
 
     private String serialiser(ItemStack[] items) {
