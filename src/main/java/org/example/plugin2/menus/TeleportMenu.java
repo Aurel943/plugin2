@@ -14,9 +14,9 @@ import org.example.plugin2.messages.MessagesManager;
 import java.util.List;
 
 /**
- * Sous-menu de téléportation. Volontairement minimal pour l'instant
- * (un seul bouton "Spawn") — facile à enrichir avec d'autres destinations
- * (mines, arène, etc.) en ajoutant des items + des cases dans onClick.
+ * Sous-menu de téléportation : Parkour et Spawn pour l'instant — facile à
+ * enrichir avec d'autres destinations (mines, arène, etc.) en ajoutant des
+ * items + des cases dans onClick.
  */
 public class TeleportMenu implements Listener {
 
@@ -32,6 +32,9 @@ public class TeleportMenu implements Listener {
 
     public void open(Player player) {
         Inventory inv = Bukkit.createInventory(null, 27, HubMenu.colored(messages.get(TITLE_KEY)));
+
+        inv.setItem(11, HubMenu.buildItem(Material.LADDER,
+                messages.get("teleport-menu.parkour"), List.of()));
 
         inv.setItem(13, HubMenu.buildItem(Material.GRASS_BLOCK,
                 messages.get("teleport-menu.spawn"), List.of()));
@@ -55,6 +58,13 @@ public class TeleportMenu implements Listener {
         if (clicked == null) return;
 
         switch (clicked.getType()) {
+            case LADDER -> {
+                // Téléporte uniquement vers la zone "entree" du parkour, pas
+                // directement sur le départ — le joueur doit ensuite marcher
+                // jusqu'à la zone de départ pour lancer son chrono.
+                plugin.getParkourManager().teleporterVersEntree(player, "parkour1");
+                player.closeInventory();
+            }
             case GRASS_BLOCK -> {
                 // Utilise le spawn custom configuré dans hub-rules.yml (modifiable via /hub setspawn),
                 // avec recherche automatique d'un sol sûr — évite de téléporter le joueur dans le sol

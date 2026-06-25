@@ -23,6 +23,7 @@ import org.example.plugin2.pets.PetManager;
 import org.example.plugin2.ranks.RankJoinListener;
 import org.example.plugin2.ranks.RankManager;
 import org.example.plugin2.world.HubWorldManager;
+import org.example.plugin2.parkour.ParkourManager;
 
 import java.util.Map;
 import java.util.UUID;
@@ -39,7 +40,6 @@ public class Plugin2 extends JavaPlugin {
     private TrailEngine trailEngine;
     private HubBossBarManager bossBarManager;
     private RankManager rankManager;
-
     private HubMenu hubMenu;
     private TeleportMenu teleportMenu;
     private PetsMenu petsMenu;
@@ -47,6 +47,7 @@ public class Plugin2 extends JavaPlugin {
     private CosmeticsMenu cosmeticsMenu;
     private CompassListener compassListener;
     private HubWorldManager hubWorldManager;
+    private ParkourManager parkourManager;
 
     @Override
     public void onEnable() {
@@ -76,6 +77,13 @@ public class Plugin2 extends JavaPlugin {
         // Monde du hub : crée/charge le monde dédié et applique ses règles (heure, météo...)
         hubWorldManager = new HubWorldManager(this);
         hubWorldManager.setupWorld();
+
+        // Système de parkour : chargement de parkour.yml + création/chargement
+        // du monde dédié. Après hubWorldManager (même pattern), mais avant les
+        // listeners puisque ParkourListener a besoin que ce manager existe déjà.
+        saveDefaultResourceIfMissing("config/parkour.yml");
+        parkourManager = new ParkourManager(this, database);
+        parkourManager.setupWorlds();
 
         // Boss bar du hub : démarrée après le monde, pour pouvoir abonner les
         // joueurs déjà connectés au reload (cf. HubBossBarManager.reload()).
@@ -107,6 +115,7 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TagChatListener(this), this);
         getServer().getPluginManager().registerEvents(motdListener, this);
         getServer().getPluginManager().registerEvents(new RankJoinListener(this), this);
+        getServer().getPluginManager().registerEvents(new ParkourListener(this), this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
@@ -115,6 +124,7 @@ public class Plugin2 extends JavaPlugin {
         getCommand("uuid").setExecutor(new UuidCommand(this));
         getCommand("plugin2").setExecutor(new Plugin2Command(this));
         getCommand("rank").setExecutor(new RankCommand(this));
+        getCommand("parkour").setExecutor(new ParkourCommand(this));
     }
 
     @Override
@@ -180,9 +190,7 @@ public class Plugin2 extends JavaPlugin {
         return hubMenu;
     }
 
-    public TeleportMenu getTeleportMenu() {
-        return teleportMenu;
-    }
+    public TeleportMenu getTeleportMenu() { return teleportMenu; }
 
     public PetsMenu getPetsMenu() {
         return petsMenu;
@@ -198,6 +206,8 @@ public class Plugin2 extends JavaPlugin {
 
     public RankManager getRankManager() { return rankManager; }
 
+    public ParkourManager getParkourManager() { return parkourManager; }
+
     // Petits "ponts" pour que CoinsCommand puisse accéder à la database
     // sans avoir à la connaître directement (juste via Plugin2)
     public Map<UUID, Double> getDatabaseAllBalances() {
@@ -207,11 +217,12 @@ public class Plugin2 extends JavaPlugin {
     public void getDatabaseResetAll() {
         economyManager.resetAll(database);
     }
-    /** Vide tous les caches mémoire (économie + upgrades) pour forcer une relecture depuis la BDD. */
+    /** Vide tous les caches mémoire (économie + upgrades + parkour) pour forcer une relecture depuis la BDD. */
     public void reloadAllCaches() {
         economyManager.reloadAll();
         upgradeManager.reloadAll();
         rankManager.reloadAll();
+        parkourManager.reload();
     }
 
     /** Petit listener interne : gère le pet actif et le trail cosmétique actif d'un joueur à la connexion/déconnexion. */

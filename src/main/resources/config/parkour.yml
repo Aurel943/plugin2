@@ -1,0 +1,82 @@
+# =========================================================
+#  parkour.yml — Définition des parcours de parkour
+# =========================================================
+# Chaque parkour est défini sous "parkours.<id>". Pour l'instant un seul
+# parkour existe ("parkour1"), mais la structure permet d'en ajouter
+# d'autres en copiant simplement une nouvelle section au même niveau.
+#
+# Toutes les zones (entree, depart, checkpoints, arrivee) sont des BOÎTES :
+# un centre (x, y, z) + une demi-largeur sur chaque axe (rayon-x, rayon-y,
+# rayon-z). Un joueur est "dans" la zone si sa position est comprise entre
+# (centre - rayon) et (centre + rayon) sur les 3 axes.
+#
+# "monde" est le nom du monde Bukkit dédié au parkour (créé/chargé par
+# ParkourWorldManager, comme le hub l'est par HubWorldManager).
+#
+# "limite-y-chute" : si la coordonnée Y du joueur descend sous cette valeur
+# pendant un run, c'est considéré comme une chute → téléportation au dernier
+# checkpoint validé (ou à la zone de départ si aucun checkpoint touché).
+#
+# "recompense-cristaux" : nombre de Cristaux donnés à chaque arrivée réussie
+# (en plus, indépendamment du fait que ce soit un nouveau record ou non).
+
+parkours:
+  parkour1:
+    monde: "parkour"
+    limite-y-chute: 0
+    recompense-cristaux: 50
+
+    # Zone où le joueur est téléporté en cliquant sur "Parkour" dans le menu
+    # de téléportation. Volontairement séparée de "depart" : le joueur doit
+    # ensuite marcher jusqu'au départ réel pour lancer son chrono.
+    entree:
+      x: 0.5
+      y: 65.0
+      z: 0.5
+      rayon-x: 2.0
+      rayon-y: 2.0
+      rayon-z: 2.0
+
+    # Zone de départ : marcher dedans déclenche le chrono (si aucun run
+    # n'est déjà en cours pour ce joueur).
+    depart:
+      x: 0.5
+      y: 65.0
+      z: 10.5
+      rayon-x: 1.5
+      rayon-y: 2.0
+      rayon-z: 1.5
+
+    # Liste ordonnée de checkpoints. À chaque entrée dans un checkpoint
+    # d'index N, le joueur valide ce checkpoint (même s'il avait déjà validé
+    # un checkpoint d'index inférieur). En cas de chute, il revient au DERNIER
+    # checkpoint validé (le plus grand index atteint), pas forcément le plus proche.
+    checkpoints:
+      - x: 0.5
+        y: 68.0
+        z: 25.5
+        rayon-x: 1.5
+        rayon-y: 2.0
+        rayon-z: 1.5
+      - x: 0.5
+        y: 72.0
+        z: 40.5
+        rayon-x: 1.5
+        rayon-y: 2.0
+        rayon-z: 1.5
+      - x: 0.5
+        y: 75.0
+        z: 55.5
+        rayon-x: 1.5
+        rayon-y: 2.0
+        rayon-z: 1.5
+
+    # Zone d'arrivée : marcher dedans pendant un run en cours arrête le
+    # chrono, enregistre le temps, donne la récompense et renvoie au hub.
+    arrivee:
+      x: 0.5
+      y: 80.0
+      z: 70.5
+      rayon-x: 2.0
+      rayon-y: 2.0
+      rayon-z: 2.0

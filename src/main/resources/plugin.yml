@@ -28,6 +28,9 @@ commands:
     description: Gère les ranks et leurs permissions.
     usage: /rank <create|delete|set|addperm|removeperm|list|info>
     permission: plugin2.admin
+  parkour:
+    description: Classement des meilleurs temps du parkour.
+    usage: /parkour top
 
 
 permissions:

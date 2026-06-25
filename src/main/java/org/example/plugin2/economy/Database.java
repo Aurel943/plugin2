@@ -17,16 +17,14 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
- * Couche d'accès à la base de données MySQL (remplace l'ancienne base SQLite
- * locale). Toutes les données (économie, pets, upgrades, cosmétiques) vivent
- * désormais dans une base MySQL externe, ce qui permet à plusieurs serveurs
- * Paper de partager les mêmes données joueur (ex: hub + survival derrière un
- * proxy BungeeCord/Velocity).
+ * Couche d'accès à la base de données MySQL. Toutes les données (économie,
+ * pets, upgrades, cosmétiques, ranks, parkour) vivent dans une base MySQL
+ * externe, ce qui permet à plusieurs serveurs Paper de partager les mêmes
+ * données joueur (ex: hub + survival derrière un proxy BungeeCord/Velocity).
  *
  * Utilise HikariCP comme pool de connexions plutôt qu'une connexion unique :
  * indispensable avec MySQL puisque plusieurs requêtes peuvent arriver en
- * parallèle (plusieurs joueurs simultanés), contrairement à SQLite où une
- * connexion unique suffisait pour un fichier local.
+ * parallèle (plusieurs joueurs simultanés).
  *
  * Les paramètres de connexion (host, port, identifiants, etc.) viennent de
  * database.yml plutôt que d'être codés en dur, pour permettre de changer de
@@ -108,6 +106,8 @@ public class Database {
         createRanksTable();
         createPlayerRanksTable();
         ensureDefaultRankExists();
+        createParkourTimesTable();
+        createParkourInventoryBackupTable();
     }
 
     private void createEconomyTable() throws SQLException {
@@ -175,7 +175,7 @@ public class Database {
     }
 
     // ---------------------------------------------------------------
-    // Économie (solde en tals)
+    // Économie (solde en Cristaux)
     // ---------------------------------------------------------------
 
     /**
@@ -199,8 +199,7 @@ public class Database {
 
     /**
      * Définit le solde d'un joueur (crée la ligne si elle n'existe pas,
-     * la met à jour sinon). Équivalent MySQL de l'upsert SQLite précédent :
-     * INSERT ... ON DUPLICATE KEY UPDATE (au lieu de ON CONFLICT DO UPDATE).
+     * la met à jour sinon) via un upsert MySQL (INSERT ... ON DUPLICATE KEY UPDATE).
      */
     public void setBalance(UUID uuid, double amount) {
         String sql = """
@@ -255,8 +254,7 @@ public class Database {
 
     /**
      * Enregistre qu'un joueur possède ce pet (achat). Ne fait rien si
-     * la ligne existe déjà (clé primaire uuid+pet_id). Équivalent MySQL
-     * de "INSERT OR IGNORE" SQLite.
+     * la ligne existe déjà (clé primaire uuid+pet_id, via INSERT IGNORE).
      */
     public void grantPet(UUID uuid, String petId) {
         String sql = "INSERT IGNORE INTO pets (uuid, pet_id, equipped) VALUES (?, ?, 0)";
@@ -715,6 +713,218 @@ public class Database {
             ps.executeUpdate();
         } catch (SQLException e) {
             logger.severe("Erreur lors de l'attribution d'un rank : " + e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Parkour : meilleurs temps et sauvegarde d'inventaire pendant un run
+    // ---------------------------------------------------------------
+
+    private void createParkourTimesTable() throws SQLException {
+        // Un meilleur temps par joueur ET par parkour (clé composite), pour
+        // pouvoir avoir plusieurs parkours différents plus tard sans collision.
+        // best_time_ms : durée en millisecondes (plus précis qu'en secondes,
+        // utile pour départager des temps très proches au classement).
+        String sql = """
+            CREATE TABLE IF NOT EXISTS parkour_times (
+                uuid VARCHAR(36) NOT NULL,
+                parkour_id VARCHAR(32) NOT NULL,
+                best_time_ms BIGINT NOT NULL,
+                PRIMARY KEY (uuid, parkour_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            """;
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
+    private void createParkourInventoryBackupTable() throws SQLException {
+        // Une ligne par joueur actuellement "dans" un parkour (présente
+        // UNIQUEMENT pendant que le joueur est dans le monde parkour, supprimée
+        // dès qu'il en ressort normalement). Sert de filet de sécurité : si le
+        // serveur crash pendant qu'un joueur est dans le parkour, son inventaire
+        // du hub n'est jamais perdu puisqu'il est sauvegardé ici, en base, et
+        // pas seulement en mémoire.
+        //
+        // inventory_data / armor_data : contenu sérialisé (Base64) de
+        // l'inventaire principal (36 slots) et de l'armure (4 slots) au moment
+        // de l'entrée dans le parkour — voir InventorySerialization.
+        // had_pet_equipped / had_trail_equipped : mémorisent si le pet/trail du
+        // joueur était actif avant d'entrer, pour savoir s'il faut le relancer
+        // à la sortie (PetManager/TrailEngine eux-mêmes ne perdent jamais cette
+        // info en base, mais ce flag évite un appel inutile si rien n'était actif).
+        String sql = """
+            CREATE TABLE IF NOT EXISTS parkour_inventory_backup (
+                uuid VARCHAR(36) PRIMARY KEY,
+                inventory_data TEXT NOT NULL,
+                armor_data TEXT NOT NULL,
+                had_pet_equipped TINYINT NOT NULL DEFAULT 0,
+                had_trail_equipped TINYINT NOT NULL DEFAULT 0
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            """;
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
+    /**
+     * Retourne le meilleur temps (en ms) du joueur sur ce parkour, ou null
+     * s'il n'a encore jamais terminé ce parkour.
+     */
+    public Long getBestTime(UUID uuid, String parkourId) {
+        String sql = "SELECT best_time_ms FROM parkour_times WHERE uuid = ? AND parkour_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, parkourId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("best_time_ms");
+            }
+            return null;
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture du meilleur temps parkour : " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Enregistre un nouveau temps SEULEMENT s'il est meilleur (plus petit) que
+     * le temps déjà enregistré, ou s'il n'y en avait aucun. Retourne true si
+     * un nouveau record a été établi (utile pour afficher un message spécial).
+     */
+    public boolean setBestTimeIfBetter(UUID uuid, String parkourId, long timeMs) {
+        Long actuel = getBestTime(uuid, parkourId);
+        if (actuel != null && actuel <= timeMs) {
+            return false; // le temps existant est déjà aussi bon ou meilleur
+        }
+
+        String sql = """
+            INSERT INTO parkour_times (uuid, parkour_id, best_time_ms) VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE best_time_ms = VALUES(best_time_ms);
+            """;
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, parkourId);
+            ps.setLong(3, timeMs);
+            ps.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de l'enregistrement du temps parkour : " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Retourne le classement complet d'un parkour (uuid -> meilleur temps en
+     * ms), trié du plus rapide au plus lent. Utilisé par /parkour top.
+     */
+    public java.util.List<java.util.Map.Entry<UUID, Long>> getTopTimes(String parkourId, int limite) {
+        java.util.List<java.util.Map.Entry<UUID, Long>> result = new java.util.ArrayList<>();
+        String sql = "SELECT uuid, best_time_ms FROM parkour_times WHERE parkour_id = ? ORDER BY best_time_ms ASC LIMIT ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, parkourId);
+            ps.setInt(2, limite);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                long temps = rs.getLong("best_time_ms");
+                result.add(java.util.Map.entry(uuid, temps));
+            }
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture du classement parkour : " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Sauvegarde l'inventaire/armure d'un joueur juste avant qu'il entre dans
+     * le parkour (inventaire vidé ensuite côté appelant). Écrase toute
+     * sauvegarde précédente pour ce joueur s'il y en avait une (ne devrait
+     * normalement pas arriver — un joueur ne peut être que dans un seul
+     * parkour à la fois — mais évite un état incohérent en cas de bug).
+     */
+    public void saveInventoryBackup(UUID uuid, String inventoryData, String armorData,
+                                    boolean hadPetEquipped, boolean hadTrailEquipped) {
+        String sql = """
+            INSERT INTO parkour_inventory_backup
+                (uuid, inventory_data, armor_data, had_pet_equipped, had_trail_equipped)
+            VALUES (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                inventory_data = VALUES(inventory_data),
+                armor_data = VALUES(armor_data),
+                had_pet_equipped = VALUES(had_pet_equipped),
+                had_trail_equipped = VALUES(had_trail_equipped);
+            """;
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, inventoryData);
+            ps.setString(3, armorData);
+            ps.setInt(4, hadPetEquipped ? 1 : 0);
+            ps.setInt(5, hadTrailEquipped ? 1 : 0);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la sauvegarde de l'inventaire parkour : " + e.getMessage());
+        }
+    }
+
+    /** Petite structure de transport pour une sauvegarde d'inventaire parkour lue en base. */
+    public static class InventoryBackup {
+        public final String inventoryData;
+        public final String armorData;
+        public final boolean hadPetEquipped;
+        public final boolean hadTrailEquipped;
+
+        public InventoryBackup(String inventoryData, String armorData,
+                               boolean hadPetEquipped, boolean hadTrailEquipped) {
+            this.inventoryData = inventoryData;
+            this.armorData = armorData;
+            this.hadPetEquipped = hadPetEquipped;
+            this.hadTrailEquipped = hadTrailEquipped;
+        }
+    }
+
+    /**
+     * Lit la sauvegarde d'inventaire d'un joueur, ou null s'il n'en a aucune
+     * (= il n'est pas/plus dans un parkour).
+     */
+    public InventoryBackup getInventoryBackup(UUID uuid) {
+        String sql = "SELECT inventory_data, armor_data, had_pet_equipped, had_trail_equipped " +
+                "FROM parkour_inventory_backup WHERE uuid = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new InventoryBackup(
+                        rs.getString("inventory_data"),
+                        rs.getString("armor_data"),
+                        rs.getInt("had_pet_equipped") != 0,
+                        rs.getInt("had_trail_equipped") != 0
+                );
+            }
+            return null;
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la lecture de l'inventaire parkour : " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Vrai si ce joueur a actuellement une sauvegarde d'inventaire en attente
+     * (= il est censé être dans le parkour). Utilisé au PlayerJoinEvent pour
+     * détecter une reconnexion après crash et restaurer automatiquement.
+     */
+    public boolean hasInventoryBackup(UUID uuid) {
+        return getInventoryBackup(uuid) != null;
+    }
+
+    /** Supprime la sauvegarde d'inventaire d'un joueur, une fois restaurée avec succès. */
+    public void deleteInventoryBackup(UUID uuid) {
+        String sql = "DELETE FROM parkour_inventory_backup WHERE uuid = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("Erreur lors de la suppression de la sauvegarde d'inventaire parkour : " + e.getMessage());
         }
     }
 }

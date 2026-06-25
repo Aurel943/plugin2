@@ -87,6 +87,7 @@ upgrade-shop:
 
 teleport-menu:
   titre: "&8&lTéléportation"
+  parkour: "&b&lParkour"
   spawn: "&a&lSpawn"
   retour: "&7&lMenu précédent"
 
@@ -181,3 +182,22 @@ rank:
     poids: "&7Poids : &f{poids}"
     aucune-permission: "&7Aucune permission définie."
     ligne-permission: "&7- &f{permission}"
+
+parkour:
+  usage: "&7Usage : &e/parkour top"
+
+  objet-retour:
+    nom: "&c&lRetour au Hub"
+    lore: "&7Clique-droit pour quitter le parkour"
+
+  run:
+    depart: "&b&l⏱ &bChrono lancé ! Bonne chance."
+    checkpoint: "&a&l✓ &aCheckpoint {numero} validé !"
+    chute: "&c&l✗ &cTu es tombé — retour au dernier checkpoint."
+    arrivee: "&a&l★ &aArrivée en &e{temps}&a ! &7(+{recompense} Cristaux)"
+    nouveau-record: "&6&l★ &6Nouveau record personnel !"
+
+  top:
+    titre: "&6&l★═══ Classement du Parkour ═══★"
+    ligne: "&6&l{rang}. &r&e{joueur} &7— &a{temps}"
+    vide: "&7Personne n'a encore terminé ce parkour."
