@@ -23,7 +23,7 @@
 parkours:
   parkour1:
     monde: "parkour"
-    limite-y-chute: 0
+    limite-y-chute: 68
     recompense-cristaux: 50
 
     # Zone où le joueur est téléporté en cliquant sur "Parkour" dans le menu
@@ -31,7 +31,7 @@ parkours:
     # ensuite marcher jusqu'au départ réel pour lancer son chrono.
     entree:
       x: 0.5
-      y: 65.0
+      y: 70.5
       z: 0.5
       rayon-x: 2.0
       rayon-y: 2.0
@@ -41,31 +41,31 @@ parkours:
     # n'est déjà en cours pour ce joueur).
     depart:
       x: 0.5
-      y: 65.0
-      z: 10.5
+      y: 70.0
+      z: 6.5
       rayon-x: 1.5
-      rayon-y: 2.0
-      rayon-z: 1.5
+      rayon-y: 1.0
+      rayon-z: 0.3
 
     # Liste ordonnée de checkpoints. À chaque entrée dans un checkpoint
     # d'index N, le joueur valide ce checkpoint (même s'il avait déjà validé
     # un checkpoint d'index inférieur). En cas de chute, il revient au DERNIER
     # checkpoint validé (le plus grand index atteint), pas forcément le plus proche.
     checkpoints:
-      - x: 0.5
-        y: 68.0
-        z: 25.5
+      - x: 2.5
+        y: 74.0
+        z: 48.5
         rayon-x: 1.5
         rayon-y: 2.0
         rayon-z: 1.5
       - x: 0.5
-        y: 72.0
+        y: 0.0
         z: 40.5
         rayon-x: 1.5
         rayon-y: 2.0
         rayon-z: 1.5
       - x: 0.5
-        y: 75.0
+        y: 0.0
         z: 55.5
         rayon-x: 1.5
         rayon-y: 2.0
@@ -75,7 +75,7 @@ parkours:
     # chrono, enregistre le temps, donne la récompense et renvoie au hub.
     arrivee:
       x: 0.5
-      y: 80.0
+      y: 69.0
       z: 70.5
       rayon-x: 2.0
       rayon-y: 2.0
