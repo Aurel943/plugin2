@@ -16,6 +16,10 @@ commands:
     description: Commandes administratives du hub (setspawn, reload).
     usage: /hub <setspawn | reload>
     permission: plugin2.admin
+  uuid:
+    description: Affiche l'UUID d'un joueur
+    usage: /uuid <pseudo>
+    permission: plugin2.admin
 
 permissions:
   plugin2.admin:

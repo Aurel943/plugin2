@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.example.plugin2.bossbar.HubBossBarManager;
 import org.example.plugin2.commands.CoinsCommand;
 import org.example.plugin2.commands.HubCommand;
+import org.example.plugin2.commands.UuidCommand;
 import org.example.plugin2.cosmetics.CosmeticManager;
 import org.example.plugin2.cosmetics.TrailEngine;
 import org.example.plugin2.economy.Database;
@@ -106,6 +107,7 @@ public class Plugin2 extends JavaPlugin {
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
         getCommand("coins").setExecutor(new CoinsCommand(this));
         getCommand("hub").setExecutor(new HubCommand(this));
+        getCommand("uuid").setExecutor(new UuidCommand(this));
     }
 
     @Override

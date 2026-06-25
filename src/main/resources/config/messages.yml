@@ -136,3 +136,8 @@ hub:
     confirme: "&a&l✓ &aSpawn du hub défini à &e{x}, {y}, {z}&a."
   reload:
     confirme: "&a&l✓ &ahub-rules.yml a été rechargé."
+
+uuid:
+  usage: "&cUsage: /uuid <pseudo>"
+  joueur-inconnu: "&cAucun joueur trouvé avec le pseudo '{pseudo}'."
+  resultat: "&aUUID de &f{pseudo} &a: &f{uuid}"
