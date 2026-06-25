@@ -21,7 +21,7 @@ import org.example.plugin2.cosmetics.CosmeticManager;
  *
  * Le tag est lu directement en base à chaque message plutôt que mis en
  * cache : la fréquence des messages chat est largement compatible avec une
- * lecture SQLite, et ça évite un cache supplémentaire à invalider quand le
+ * lecture MySQL, et ça évite un cache supplémentaire à invalider quand le
  * joueur change de tag dans CosmeticsMenu.
  */
 public class TagChatListener implements Listener {
