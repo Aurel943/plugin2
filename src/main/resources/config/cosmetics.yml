@@ -2,7 +2,7 @@
 # =========================================================
 #  cosmetics.yml — Catalogue des cosmétiques achetables dans le hub
 # =========================================================
-# Trois catégories indépendantes : trails, tags, compass-skins.
+# Deux catégories indépendantes : trails et compass-skins.
 # Dans chaque catégorie, le joueur peut posséder plusieurs cosmétiques
 # mais n'en a qu'UN seul équipé à la fois (comme les pets).
 #
