@@ -1,0 +1,47 @@
+# Configuration des PNJ visuels du hub (ArmorStand habillé d'une tête
+# texturée). Chaque PNJ est identifié par un id unique (clé sous "npcs"),
+# ce qui permet d'en ajouter ou retirer autant qu'on veut sans toucher au
+# code Java — juste ce fichier + /plugin2 reload.
+#
+# Interaction au clic (menu) pas encore implémentée — voir
+# HubNpcInteractListener pour le TODO.
+npcs:
+
+  garde-accueil:
+    active: true
+    nom: "&6Garde du Hub"
+
+    # Centre de la zone de balade et rayon (en blocs) — le PNJ ne sortira
+    # jamais de ce disque, comme le tirage aléatoire du spawn du hub.
+    centre:
+      monde: "hub"
+      x: 0.5
+      y: 64.0
+      z: 0.5
+
+    rayon-balade: 8.0
+
+    # Toutes les "deplacement-intervalle-ticks" (20 ticks = 1 seconde), le PNJ
+    # tire un nouveau point aléatoire dans le rayon et s'y déplace pas à pas.
+    deplacement-intervalle-ticks: 100
+    vitesse-blocs-par-tick: 0.08
+
+    # Texture de la tête (voir HubNpcManager pour le format attendu).
+    # Remplaçable à tout moment par une valeur récupérée sur minecraft-heads.com
+    # ou mineskin.org — un simple /plugin2 reload suffit après modification.
+    texture-base64: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzFmNDU3NGMxN2ZkYzc1ZmI5YjkwNTRlOTk3NmYzNWYzOGFhMzNiMTQ2YjZmMmIxMzZjNTUxNGJjMjY4OTdmZSJ9fX0="
+
+  # Exemple d'un second PNJ, désactivé par défaut — décommente et adapte
+  # pour en ajouter un nouveau. Aucune limite au nombre d'entrées sous "npcs".
+  # marchand-cosmetiques:
+  #   active: false
+  #   nom: "&aMarchand"
+  #   centre:
+  #     monde: "hub"
+  #     x: 10.0
+  #     y: 64.0
+  #     z: -5.0
+  #   rayon-balade: 5.0
+  #   deplacement-intervalle-ticks: 100
+  #   vitesse-blocs-par-tick: 0.08
+  #   texture-base64: ""

@@ -24,6 +24,8 @@ import org.example.plugin2.ranks.RankJoinListener;
 import org.example.plugin2.ranks.RankManager;
 import org.example.plugin2.world.HubWorldManager;
 import org.example.plugin2.parkour.ParkourManager;
+import org.example.plugin2.npc.HubNpcManager;
+import org.example.plugin2.listeners.HubNpcInteractListener;
 
 import java.util.Map;
 import java.util.UUID;
@@ -48,6 +50,7 @@ public class Plugin2 extends JavaPlugin {
     private CompassListener compassListener;
     private HubWorldManager hubWorldManager;
     private ParkourManager parkourManager;
+    private HubNpcManager hubNpcManager;
 
     @Override
     public void onEnable() {
@@ -77,6 +80,11 @@ public class Plugin2 extends JavaPlugin {
         // Monde du hub : crée/charge le monde dédié et applique ses règles (heure, météo...)
         hubWorldManager = new HubWorldManager(this);
         hubWorldManager.setupWorld();
+
+        saveDefaultResourceIfMissing("config/npc.yml");
+        hubNpcManager = new HubNpcManager(this);
+        hubNpcManager.spawnAllActive();
+        getServer().getPluginManager().registerEvents(new HubNpcInteractListener(this, hubNpcManager), this);
 
         // Système de parkour : chargement de parkour.yml + création/chargement
         // du monde dédié. Après hubWorldManager (même pattern), mais avant les
@@ -136,6 +144,9 @@ public class Plugin2 extends JavaPlugin {
         }
         if (hubWorldManager != null) {
             hubWorldManager.shutdown();
+        }
+        if (hubNpcManager != null) {
+            hubNpcManager.despawnAll();
         }
         if (database != null) {
             database.disconnect();
@@ -209,6 +220,9 @@ public class Plugin2 extends JavaPlugin {
 
     public ParkourManager getParkourManager() { return parkourManager; }
 
+    // Getter, avec les autres getters de managers
+    public HubNpcManager getHubNpcManager() { return hubNpcManager; }
+
     // Petits "ponts" pour que CoinsCommand puisse accéder à la database
     // sans avoir à la connaître directement (juste via Plugin2)
     public Map<UUID, Double> getDatabaseAllBalances() {
@@ -224,6 +238,7 @@ public class Plugin2 extends JavaPlugin {
         upgradeManager.reloadAll();
         rankManager.reloadAll();
         parkourManager.reload();
+        hubNpcManager.reload();
     }
 
     /** Petit listener interne : gère le pet actif et le trail cosmétique actif d'un joueur à la connexion/déconnexion. */
