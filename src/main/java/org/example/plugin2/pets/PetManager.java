@@ -180,6 +180,11 @@ public class PetManager {
         return activePetId.get(uuid);
     }
 
+    /** Vrai si l'entité donnée est le pet actif de N'IMPORTE QUEL joueur (utile pour les listeners de protection). */
+    public boolean isManagedPet(org.bukkit.entity.Entity entity) {
+        return activePetEntity.containsValue(entity);
+    }
+
     /** Retire le pet actuellement actif du joueur, s'il y en a un. */
     public void unequip(Player player) {
         UUID uuid = player.getUniqueId();
@@ -260,6 +265,18 @@ public class PetManager {
         if (entity instanceof org.bukkit.entity.Ageable ageable) {
             ageable.setBaby(); // version "mini" pour un effet pet plus mignon, si applicable
         }
+        if (entity instanceof org.bukkit.entity.Parrot parrot) {
+            // Un perroquet (apprivoisé ou non) monte automatiquement sur l'épaule
+            // du joueur dès qu'il le traverse — aucun clic nécessaire, et aucun
+            // event Bukkit ne permet d'intercepter ce comportement avant qu'il
+            // n'ait lieu. Comme notre perroquet-pet est suivi par téléportation
+            // (voir followPlayer()), il traverse forcément le joueur à un moment
+            // ou un autre. Le mettre en mode "assis" empêche ce montage purement
+            // et simplement : un perroquet assis ne monte jamais à l'épaule, par
+            // clic ou en le traversant — exactement le même mécanisme que les
+            // joueurs utilisent pour empêcher ça avec leurs propres perroquets.
+            parrot.setSitting(true);
+        }
         entity.setInvulnerable(true);
         entity.setSilent(false);
 
@@ -284,6 +301,25 @@ public class PetManager {
      * Simple et léger — suffisant pour un effet "pet qui suit" en hub.
      */
     private void followPlayer(Player player, Entity entity, PetDefinition def) {
+        if (entity instanceof ArmorStand) {
+            // Les ARMOR_STAND (diamant flottant, tête de zombie, étoile naine...)
+            // ne suivent PAS le regard du joueur — sinon ils restent filés droit
+            // dans son dos et reviennent donc dans son champ de vision dès qu'il
+            // pivote ou tourne sur lui-même. À la place, ils tournent en orbite
+            // lente autour du joueur, à un angle qui dépend du temps écoulé et
+            // non de son yaw : la position orbite "pour de vrai" plutôt que de
+            // rester collée derrière sa tête.
+            Location centre = player.getLocation();
+            double angle = (System.currentTimeMillis() % 4000L) / 4000.0 * (Math.PI * 2);
+            double rayon = 1.3;
+            double offsetX = Math.cos(angle) * rayon;
+            double offsetZ = Math.sin(angle) * rayon;
+
+            Location target = centre.clone().add(offsetX, 0.2, offsetZ);
+            entity.teleport(target);
+            return;
+        }
+
         Location target = player.getLocation().clone();
 
         // Calcule un point derrière le joueur (1.5 bloc en arrière, selon son regard)
@@ -292,11 +328,7 @@ public class PetManager {
         double offsetZ = -Math.cos(yawRad) * 1.5;
         target.add(-offsetX, 0, -offsetZ);
 
-        if (entity instanceof ArmorStand) {
-            // Armor stand : on le téléporte directement (pas de pathfinding, donc pas de saccades de marche)
-            target.setY(target.getY() + 0.2);
-            entity.teleport(target);
-        } else if (entity instanceof Mob mob) {
+        if (entity instanceof Mob mob) {
             // Vrai mob : si le pet et le joueur ne sont plus dans le même monde
             // (ex: le joueur vient de changer de monde — hub <-> parkour — avant
             // que la tâche de suivi ait eu le temps d'être annulée), Location.distance()
