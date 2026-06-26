@@ -111,6 +111,8 @@ public class ParkourManager {
 
     public static final org.bukkit.NamespacedKey RETOUR_KEY =
             new org.bukkit.NamespacedKey("plugin2", "parkour_retour");
+    public static final org.bukkit.NamespacedKey RESET_KEY =
+            new org.bukkit.NamespacedKey("plugin2", "parkour_reset");
 
     public ParkourManager(Plugin2 plugin, Database database) {
         this.plugin = plugin;
@@ -348,7 +350,7 @@ public class ParkourManager {
         inv.clear();
         inv.setArmorContents(new ItemStack[4]);
 
-        inv.setItem(4, creerObjetRetour());
+        inv.setItem(8, creerObjetRetour());
 
         // Suspend le pet/trail visuellement sans toucher à leur équipement en
         // base (mêmes méthodes que celles utilisées à la déconnexion).
@@ -371,6 +373,26 @@ public class ParkourManager {
         return item;
     }
 
+    private ItemStack creerObjetReset() {
+        ItemStack item = new ItemStack(org.bukkit.Material.CLOCK);
+        MessagesManager messages = plugin.getMessagesManager();
+
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(org.bukkit.ChatColor.translateAlternateColorCodes('&', messages.get("parkour.objet-reset.nom")));
+        meta.setLore(List.of(org.bukkit.ChatColor.translateAlternateColorCodes('&', messages.get("parkour.objet-reset.lore"))));
+        // Même principe que l'objet retour : marqué par PersistentDataTag pour
+        // être reconnu de façon fiable même après un /plugin2 reload.
+        meta.getPersistentDataContainer().set(RESET_KEY, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+    public boolean estObjetReset(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(RESET_KEY, org.bukkit.persistence.PersistentDataType.BYTE);
+    }
+
     public boolean estObjetRetour(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
         return item.getItemMeta().getPersistentDataContainer().has(RETOUR_KEY, org.bukkit.persistence.PersistentDataType.BYTE);
@@ -383,6 +405,11 @@ public class ParkourManager {
     /** Démarre un nouveau run pour ce joueur sur ce parkour (appelé en touchant la zone "depart"). */
     public void demarrerRun(Player player, String parkourId) {
         sessionsActives.put(player.getUniqueId(), new ParkourSession(parkourId));
+        // L'item reset n'a de sens que pendant un run actif (avant le départ,
+        // il n'y a rien à réinitialiser) — donné ici, retiré dans
+        // terminerRun()/abandonnerRun(). Slot 0, à l'opposé de l'objet retour
+        // (slot 8) pour ne jamais se chevaucher avec lui.
+        player.getInventory().setItem(0, creerObjetReset());
         plugin.getMessagesManager().send(player, "parkour.run.depart");
     }
 
@@ -427,6 +454,81 @@ public class ParkourManager {
     }
 
     /**
+     * Gère la mort d'un joueur dans un monde de parkour, quelle que soit la
+     * cause (lave, vide hors run, mob si jamais autorisé un jour, etc.) —
+     * appelée depuis ParkourListener.onDeath(). Comportement voulu (voir
+     * discussion du " comme convenu ") :
+     *   - mort PENDANT un run actif : traitée exactement comme une chute
+     *     (retour au dernier checkpoint, le run continue, chrono non arrêté).
+     *   - mort AVANT le départ du run (pas de session active) : renvoyée à
+     *     la zone d'entrée du parkour, sans toucher à l'inventaire (déjà
+     *     vidé avec l'objet retour, rien à restaurer).
+     * Ne fait la téléportation que dans onRespawn (cette méthode calcule et
+     * stocke seulement la destination) — voir ParkourListener pour le détail
+     * de l'enchaînement death → respawn.
+     */
+    public Location calculerDestinationApresMort(Player player) {
+        ParkourSession session = sessionsActives.get(player.getUniqueId());
+
+        if (session != null) {
+            // Mort pendant un run actif : même destination qu'une chute,
+            // mais SANS toucher à la session (on ne l'enlève pas, le run
+            // continue normalement après le respawn).
+            ParkourDefinition def = definitions.get(session.getParkourId());
+            if (def == null) return null;
+            World monde = mondesCharges.get(def.mondeNom);
+            if (monde == null) return null;
+
+            int dernierCheckpoint = session.getDernierCheckpointValide();
+            if (dernierCheckpoint >= 0 && dernierCheckpoint < def.checkpoints.size()) {
+                return def.checkpoints.get(dernierCheckpoint).toLocation(monde);
+            }
+            return def.depart.toLocation(monde);
+        }
+
+        // Pas de run actif : mort avant le départ → retour à l'entrée du
+        // même parkour. On retrouve le parkour via le monde courant du joueur.
+        for (ParkourDefinition def : definitions.values()) {
+            if (def.mondeNom.equals(player.getWorld().getName())) {
+                World monde = mondesCharges.get(def.mondeNom);
+                if (monde == null) return null;
+                return def.entree.toLocation(monde);
+            }
+        }
+
+        return null;
+    }
+
+    /** Message à envoyer après un respawn dans le monde parkour — distingue chute/mort en run vs avant départ. */
+    public String messageApresMort(Player player) {
+        return estEnRun(player.getUniqueId()) ? "parkour.run.mort" : null;
+    }
+
+    /**
+     * Réinitialise complètement le run en cours (clic sur l'item reset,
+     * slot 0) : remet le chrono à zéro et renvoie à la zone de départ. Ne
+     * fait rien si aucun run n'est actif (l'item ne devrait normalement pas
+     * être en inventaire dans ce cas, mais on sécurise quand même).
+     */
+    public void reinitialiserRun(Player player) {
+        ParkourSession session = sessionsActives.get(player.getUniqueId());
+        if (session == null) return;
+
+        ParkourDefinition def = definitions.get(session.getParkourId());
+        if (def == null) return;
+
+        World monde = mondesCharges.get(def.mondeNom);
+        if (monde == null) return;
+
+        // Remplace la session par une toute neuve : chrono à zéro et
+        // dernierCheckpointValide à -1, comme un tout nouveau départ.
+        sessionsActives.put(player.getUniqueId(), new ParkourSession(def.id));
+
+        player.teleport(def.depart.toLocation(monde));
+        plugin.getMessagesManager().send(player, "parkour.run.reset");
+    }
+
+    /**
      * Termine le run en cours du joueur avec succès (zone d'arrivée touchée) :
      * enregistre le temps si c'est un record, donne la récompense, restaure
      * l'inventaire et renvoie au hub.
@@ -434,6 +536,8 @@ public class ParkourManager {
     public void terminerRun(Player player) {
         ParkourSession session = sessionsActives.remove(player.getUniqueId());
         if (session == null) return;
+
+        retirerObjetReset(player);
 
         ParkourDefinition def = definitions.get(session.getParkourId());
         if (def == null) return;
@@ -462,7 +566,19 @@ public class ParkourManager {
      * n'est enregistré.
      */
     public void abandonnerRun(Player player) {
-        sessionsActives.remove(player.getUniqueId());
+        if (sessionsActives.remove(player.getUniqueId()) != null) {
+            retirerObjetReset(player);
+        }
+    }
+
+    /** Retire l'item reset de l'inventaire du joueur, s'il l'a encore (slot 0 normalement). */
+    private void retirerObjetReset(Player player) {
+        ItemStack[] contenu = player.getInventory().getContents();
+        for (int slot = 0; slot < contenu.length; slot++) {
+            if (estObjetReset(contenu[slot])) {
+                player.getInventory().setItem(slot, null);
+            }
+        }
     }
 
     /** Annule le run en cours (s'il y en a un) et restaure l'inventaire/hub. Utilisé par l'objet retour. */

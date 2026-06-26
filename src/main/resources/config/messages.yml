@@ -190,10 +190,16 @@ parkour:
     nom: "&c&lRetour au Hub"
     lore: "&7Clique-droit pour quitter le parkour"
 
+  objet-reset:
+    nom: "&6&lRecommencer"
+    lore: "&7Clique-droit pour retourner au départ et réinitialiser le temps"
+
   run:
     depart: "&b&l⏱ &bChrono lancé ! Bonne chance."
     checkpoint: "&a&l✓ &aCheckpoint {numero} validé !"
     chute: "&c&l✗ &cTu es tombé — retour au dernier checkpoint."
+    mort: "&c&l✗ &cTu es mort — retour au dernier checkpoint."
+    reset: "&6&l↺ &6Chrono réinitialisé — retour au départ."
     arrivee: "&a&l★ &aArrivée en &e{temps}&a ! &7(+{recompense} Cristaux)"
     nouveau-record: "&6&l★ &6Nouveau record personnel !"
 

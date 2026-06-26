@@ -11,6 +11,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.example.plugin2.Plugin2;
 import org.example.plugin2.parkour.ParkourManager;
 import org.example.plugin2.parkour.ParkourSession;
+import org.bukkit.Location;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.util.List;
 import java.util.Map;
@@ -120,6 +123,57 @@ public class ParkourListener implements Listener {
         if (parkour.estObjetRetour(event.getItem())) {
             event.setCancelled(true);
             parkour.sortirDuParkour(event.getPlayer());
+            return;
+        }
+
+        if (parkour.estObjetReset(event.getItem())) {
+            event.setCancelled(true);
+            parkour.reinitialiserRun(event.getPlayer());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Mort / réapparition dans le monde parkour
+    // ---------------------------------------------------------------
+
+    /**
+     * Une mort dans le monde parkour ne doit JAMAIS renvoyer le joueur vers
+     * le spawn par défaut du serveur ("world") ni lui faire perdre son
+     * inventaire parkour (objet retour / objet reset) — contrairement au
+     * comportement par défaut de Bukkit sans ce listener. On calcule la
+     * destination ici (pendant la mort, le joueur ne peut pas encore être
+     * téléporté), et onRespawn() applique cette destination au moment où
+     * Bukkit le réapparaît réellement.
+     */
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        if (!parkour.isParkourWorld(player.getWorld())) return;
+
+        // Pas de perte d'objets à la mort dans le parkour — cohérent avec
+        // ParkourRulesListener qui bloque déjà tout drop/pickup manuel.
+        event.getDrops().clear();
+        event.setKeepInventory(true);
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        if (!parkour.isParkourWorld(player.getWorld())) return;
+
+        Location destination = parkour.calculerDestinationApresMort(player);
+        if (destination == null) return; // sécurité : définition introuvable, on laisse Bukkit faire son défaut
+
+        event.setRespawnLocation(destination);
+
+        String cleMessage = parkour.messageApresMort(player);
+        if (cleMessage != null) {
+            // Léger délai : le message juste après setRespawnLocation arrive
+            // parfois avant que le client ait fini de traiter la téléportation
+            // de réapparition — un tick suffit à éviter que le message se
+            // perde visuellement dans le chargement du monde.
+            plugin.getServer().getScheduler().runTask(plugin, () ->
+                    plugin.getMessagesManager().send(player, cleMessage));
         }
     }
 
