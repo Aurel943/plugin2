@@ -70,17 +70,19 @@ public class HubCommand implements CommandExecutor {
         ));
     }
 
+    /**
+     * Ne recharge QUE hub-rules.yml — comportement volontairement restreint
+     * depuis l'unification du reload global dans /plugin2 reload (voir
+     * Plugin2.reloadAllCaches()). Pour tout recharger (messages, pets,
+     * cosmétiques, boss bar, MOTD, économie, ranks, parkour...), utiliser
+     * /plugin2 reload à la place.
+     */
     private void handleReload(CommandSender sender) {
         if (!sender.hasPermission("plugin2.admin")) {
             messages.send(sender, "coins.permission-refusee-admin");
             return;
         }
         hubWorldManager.loadConfig();
-        plugin.getMessagesManager().reload();
-        plugin.getPetManager().reload();
-        plugin.getCosmeticManager().reload();
-        plugin.getBossBarManager().reload();
-        plugin.getMotdListener().reload();
         messages.send(sender, "hub.reload.confirme");
     }
 }

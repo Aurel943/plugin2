@@ -37,7 +37,7 @@ import java.util.UUID;
  * Le super saut propulse le joueur verticalement ET horizontalement dans la
  * direction où il regarde, avec un son et une traînée de particules pendant
  * tout le vol. Il ne coûte rien à l'usage : seul l'achat initial coûte des
- * tals (voir UpgradeShopMenu). Aucun message n'est envoyé à l'exécution du
+ * Cristaux (voir UpgradeShopMenu). Aucun message n'est envoyé à l'exécution du
  * saut lui-même — seules les particules et le son signalent l'action.
  */
 public class SuperSautListener implements Listener {

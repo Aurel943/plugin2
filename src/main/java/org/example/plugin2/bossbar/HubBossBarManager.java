@@ -173,7 +173,7 @@ public class HubBossBarManager {
         }
     }
 
-    /** Remplace {solde} par le solde en tals du joueur, puis traduit les couleurs &. */
+    /** Remplace {solde} par le solde en Cristaux du joueur, puis traduit les couleurs &. */
     private Component resolveText(String rawText, Player player) {
         String resolved = rawText;
         if (resolved.contains("{solde}")) {

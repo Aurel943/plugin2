@@ -72,9 +72,19 @@ public class ParkourListener implements Listener {
             return;
         }
 
-        // Départ : démarre un run si aucun n'est en cours.
-        if (session == null && def.depart.contient(event.getTo())) {
-            parkour.demarrerRun(player, def.id);
+        // Départ : démarre un run si aucun n'est en cours. Si un run est DÉJÀ
+        // en cours et que le joueur retouche la zone "depart" (ex: il est
+        // reparti en arrière après le 1er checkpoint), on traite ça comme un
+        // reset automatique : nouveau chrono à zéro, comme un clic sur l'objet
+        // reset — sans ça, revenir au départ pendant un run ne faisait
+        // strictement rien (le chrono continuait de tourner depuis le tout
+        // premier départ, ce qui n'a pas de sens si le joueur recommence).
+        if (def.depart.contient(event.getTo())) {
+            if (session == null) {
+                parkour.demarrerRun(player, def.id);
+            } else {
+                parkour.reinitialiserRun(player);
+            }
             return;
         }
 

@@ -302,6 +302,21 @@ public class ParkourManager {
         return sessionsActives.containsKey(uuid);
     }
 
+    /**
+     * Vrai si ce joueur a une sauvegarde d'inventaire de parkour en attente
+     * en base — couvre à la fois le cas "run actif" (estEnRun()) ET le cas
+     * "téléporté dans la zone d'entrée mais pas encore parti" (où aucune
+     * ParkourSession n'existe encore, mais l'inventaire est déjà vidé et
+     * sauvegardé — voir preparerEntreeJoueur()). Utile pour tout code qui a
+     * besoin de savoir "ce joueur doit-il être sorti proprement du parkour
+     * avant d'être téléporté ailleurs ?", comme TeleportMenu.
+     */
+    public boolean aUneSauvegardeEnAttente(Player player) {
+        return database.hasInventoryBackup(player.getUniqueId());
+    }
+
+
+
     // ---------------------------------------------------------------
     // Entrée dans le parkour (téléportation menu OU zone "entree" à pied)
     // ---------------------------------------------------------------

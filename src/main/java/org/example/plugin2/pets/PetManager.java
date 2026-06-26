@@ -297,8 +297,16 @@ public class PetManager {
             target.setY(target.getY() + 0.2);
             entity.teleport(target);
         } else if (entity instanceof Mob mob) {
-            // Vrai mob : trop loin → téléportation directe, sinon on le laisse marcher via pathfinder
-            if (entity.getLocation().distance(player.getLocation()) > 6) {
+            // Vrai mob : si le pet et le joueur ne sont plus dans le même monde
+            // (ex: le joueur vient de changer de monde — hub <-> parkour — avant
+            // que la tâche de suivi ait eu le temps d'être annulée), Location.distance()
+            // lève une IllegalArgumentException entre deux mondes différents.
+            // C'est exactement ce qui causait le spam "Cannot measure distance
+            // between parkour and hub" dans la console : on protège donc l'appel
+            // en comparant d'abord les mondes, et on téléporte directement si
+            // besoin (même comportement que le cas "trop loin" ci-dessous).
+            if (!entity.getWorld().equals(player.getWorld())
+                    || entity.getLocation().distance(player.getLocation()) > 6) {
                 entity.teleport(target);
             } else {
                 mob.getPathfinder().moveTo(target, 1.0);

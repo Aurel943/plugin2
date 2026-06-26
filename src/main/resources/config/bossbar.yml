@@ -12,7 +12,7 @@
 # Une slide spéciale "{solde}" est calculée en live (mise à jour chaque
 # seconde tant qu'elle est affichée) : si une slide contient {solde},
 # le texte est recalculé dynamiquement pour CHAQUE joueur avec SON
-# propre solde en tals. Toutes les autres slides sont du texte fixe,
+# propre solde en Cristaux. Toutes les autres slides sont du texte fixe,
 # identique pour tout le monde.
 
 general:
@@ -25,7 +25,7 @@ general:
 # Liste des slides affichées en boucle, dans l'ordre où elles apparaissent ici.
 # Chaque slide a :
 #   texte  : le message (couleurs & acceptées). Utilise {solde} pour insérer
-#            dynamiquement le solde en tals du joueur qui regarde la barre.
+#            dynamiquement le solde en Cristaux du joueur qui regarde la barre.
 #   duree-secondes : combien de temps cette slide reste affichée avant de
 #            passer à la suivante.
 slides:

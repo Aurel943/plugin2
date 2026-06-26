@@ -66,10 +66,21 @@ public class TeleportMenu implements Listener {
                 player.closeInventory();
             }
             case GRASS_BLOCK -> {
-                // Utilise le spawn custom configuré dans hub-rules.yml (modifiable via /hub setspawn),
-                // avec recherche automatique d'un sol sûr — évite de téléporter le joueur dans le sol
-                // comme le faisait l'ancien player.getWorld().getSpawnLocation().
-                plugin.getHubWorldManager().teleportToHub(player);
+                // Si le joueur a encore une sauvegarde de parkour en attente (run actif
+                // OU simplement téléporté dans la zone d'entrée sans être encore parti),
+                // on passe par sortirDuParkour() plutôt que par une téléportation brute :
+                // ça restaure son inventaire d'avant parkour, retire l'objet retour/reset,
+                // et réactive pet/trail si besoin. Une téléportation directe ici laisserait
+                // sa sauvegarde d'inventaire orpheline en base et son inventaire parkour
+                // (objet retour/reset) bloqué.
+                if (plugin.getParkourManager().aUneSauvegardeEnAttente(player)) {
+                    plugin.getParkourManager().sortirDuParkour(player);
+                } else {
+                    // Utilise le spawn custom configuré dans hub-rules.yml (modifiable via /hub setspawn),
+                    // avec recherche automatique d'un sol sûr — évite de téléporter le joueur dans le sol
+                    // comme le faisait l'ancien player.getWorld().getSpawnLocation().
+                    plugin.getHubWorldManager().teleportToHub(player);
+                }
                 player.closeInventory();
             }
             case ARROW -> plugin.getHubMenu().open(player);

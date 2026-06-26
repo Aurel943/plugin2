@@ -88,6 +88,16 @@ public class RankCommand implements CommandExecutor {
             return;
         }
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+
+        // Comme UuidCommand/CoinsCommand : on vérifie que ce pseudo correspond
+        // à un joueur ayant réellement existé, pour ne pas assigner
+        // silencieusement un rank à un OfflinePlayer "fantôme" créé par Bukkit
+        // pour n'importe quel nom mal orthographié.
+        if (!target.hasPlayedBefore() && !target.isOnline()) {
+            messages.send(sender, "uuid.joueur-inconnu", Map.of("pseudo", args[1]));
+            return;
+        }
+
         String rankId = args[2].toLowerCase();
 
         if (!ranks.rankExists(rankId)) {

@@ -72,6 +72,15 @@ public class CoinsCommand implements CommandExecutor {
                 return true;
             }
             OfflinePlayer target = Bukkit.getOfflinePlayer(sousCommande);
+            // Comme UuidCommand : on vérifie que ce pseudo correspond à un
+            // joueur ayant réellement existé (ou actuellement en ligne) avant
+            // d'afficher un solde — sinon Bukkit crée un OfflinePlayer
+            // "fantôme" pour n'importe quel nom, ce qui affichait silencieusement
+            // "0 cristal" pour un pseudo mal orthographié au lieu de prévenir l'admin.
+            if (!target.hasPlayedBefore() && !target.isOnline()) {
+                messages.send(sender, "uuid.joueur-inconnu", Map.of("pseudo", sousCommande));
+                return true;
+            }
             double balance = economy.getBalance(target.getUniqueId());
             messages.send(sender, "coins.solde-autre", Map.of(
                     "joueur", sousCommande,

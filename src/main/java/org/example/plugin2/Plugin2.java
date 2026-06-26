@@ -125,6 +125,7 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RankJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new ParkourListener(this), this);
         getServer().getPluginManager().registerEvents(new ParkourRulesListener(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryLockListener(this), this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
@@ -232,13 +233,31 @@ public class Plugin2 extends JavaPlugin {
     public void getDatabaseResetAll() {
         economyManager.resetAll(database);
     }
-    /** Vide tous les caches mémoire (économie + upgrades + parkour) pour forcer une relecture depuis la BDD. */
+    /**
+     * Recharge TOUT ce qui peut l'être à chaud : caches mémoire (économie,
+     * upgrades, ranks, parkour, NPC) ET fichiers de configuration (messages,
+     * pets, cosmétiques, boss bar, MOTD). C'est désormais LE reload complet
+     * du plugin — voir Plugin2Command ("/plugin2 reload").
+     *
+     * /hub reload reste séparé et ne recharge QUE hub-rules.yml : son rôle
+     * est strictement limité aux réglages du monde du hub (heure, météo,
+     * dégâts...), pas un reload général. Avant cette unification, les deux
+     * commandes se chevauchaient partiellement sans jamais couvrir le même
+     * périmètre, ce qui pouvait faire croire à un admin qu'un fichier était
+     * rechargé alors qu'il ne l'était pas.
+     */
     public void reloadAllCaches() {
         economyManager.reloadAll();
         upgradeManager.reloadAll();
         rankManager.reloadAll();
         parkourManager.reload();
         hubNpcManager.reload();
+
+        messagesManager.reload();
+        petManager.reload();
+        cosmeticManager.reload();
+        bossBarManager.reload();
+        motdListener.reload();
     }
 
     /** Petit listener interne : gère le pet actif et le trail cosmétique actif d'un joueur à la connexion/déconnexion. */
