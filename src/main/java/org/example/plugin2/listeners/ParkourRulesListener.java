@@ -6,6 +6,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.example.plugin2.Plugin2;
@@ -86,5 +87,22 @@ public class ParkourRulesListener implements Listener {
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * Aucune perte de faim dans le monde parkour, pour personne (admin
+     * compris) — même logique que HubRulesListener.onFoodChange() : le
+     * parkour est un monde figé où la survie ne doit jamais entrer en jeu.
+     * Contrairement au hub, pas de clé .yml pour rendre ça optionnel : un
+     * seul comportement voulu ici, donc pas besoin de la souplesse on/off.
+     */
+    @EventHandler
+    public void onFoodChange(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!parkour.isParkourWorld(player.getWorld())) return;
+
+        event.setCancelled(true);
+        player.setFoodLevel(20);
+        player.setSaturation(20f);
     }
 }
