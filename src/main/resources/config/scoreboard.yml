@@ -1,0 +1,36 @@
+# =========================================================
+#  scoreboard.yml — Configuration du scoreboard latéral (sidebar)
+# =========================================================
+# Le scoreboard ne s'affiche QUE dans les mondes listés sous "mondes-actifs".
+# En dehors de ces mondes, aucun scoreboard n'est affiché au joueur.
+
+mondes-actifs:
+  - "hub"
+
+# Titre affiché en haut du scoreboard (1 seule ligne).
+titre: "&6&l★ Serveur Minecraft ★"
+
+# Lignes affichées sous le titre, dans l'ordre (la première ligne de la
+# liste apparaît juste sous le titre). Variables disponibles :
+#   {pseudo}      -> nom du joueur
+#   {rank}        -> identifiant du rank actif (ex: "vip", "joueur")
+#   {cristaux}    -> solde de Cristaux du joueur (nombre entier)
+#   {en-ligne}    -> nombre de joueurs actuellement connectés au serveur
+#   {heure}       -> heure réelle du serveur, format HH:mm
+#
+# Une ligne vide ("") affiche un espace vide dans le scoreboard — utile
+# pour séparer visuellement des groupes d'informations.
+lignes:
+  - ""
+  - "&fJoueur: &e{pseudo}"
+  - "&fRank: &b{rank}"
+  - ""
+  - "&fCristaux: &6{cristaux}"
+  - ""
+  - "&fEn ligne: &a{en-ligne}"
+  - "&fHeure: &7{heure}"
+
+# Intervalle de rafraîchissement automatique, en ticks (20 ticks = 1 seconde).
+# N'écrit une ligne que si sa valeur a changé depuis le dernier passage —
+# aucun scintillement même à un intervalle court.
+intervalle-rafraichissement-ticks: 20

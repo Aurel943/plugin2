@@ -24,6 +24,8 @@ import org.example.plugin2.ranks.RankJoinListener;
 import org.example.plugin2.ranks.RankManager;
 import org.example.plugin2.world.HubWorldManager;
 import org.example.plugin2.parkour.ParkourManager;
+import org.example.plugin2.scoreboard.ScoreboardManager;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
 import java.util.UUID;
@@ -48,6 +50,8 @@ public class Plugin2 extends JavaPlugin {
     private CompassListener compassListener;
     private HubWorldManager hubWorldManager;
     private ParkourManager parkourManager;
+    private ScoreboardManager scoreboardManager;
+    private BukkitTask scoreboardRefreshTask;
 
     @Override
     public void onEnable() {
@@ -85,6 +89,12 @@ public class Plugin2 extends JavaPlugin {
         parkourManager = new ParkourManager(this, database);
         parkourManager.setupWorlds();
 
+        // Scoreboard latéral : affiché uniquement dans les mondes listés dans
+        // scoreboard.yml (le hub par défaut). Placé après les autres managers
+        // dont il dépend pour ses variables (économie, ranks).
+        saveDefaultResourceIfMissing("config/scoreboard.yml");
+        scoreboardManager = new ScoreboardManager(this);
+
         // Boss bar du hub : démarrée après le monde, pour pouvoir abonner les
         // joueurs déjà connectés au reload (cf. HubBossBarManager.reload()).
         bossBarManager = new HubBossBarManager(this);
@@ -119,6 +129,7 @@ public class Plugin2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ParkourRulesListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryLockListener(this), this);
         getServer().getPluginManager().registerEvents(new PetProtectionListener(this), this);
+        getServer().getPluginManager().registerEvents(new ScoreboardListener(this), this);
 
         // Enregistrement de l'executor pour la commande /coins
         // (nécessaire en plus de plugin.yml : c'est ce qui relie le nom de commande au code)
@@ -128,6 +139,17 @@ public class Plugin2 extends JavaPlugin {
         getCommand("plugin2").setExecutor(new Plugin2Command(this));
         getCommand("rank").setExecutor(new RankCommand(this));
         getCommand("parkour").setExecutor(new ParkourCommand(this));
+
+        // Rafraîchissement périodique du scoreboard (Cristaux, heure, nombre de
+        // joueurs en ligne) — n'écrit que les lignes dont la valeur a changé,
+        // donc aucun scintillement même à 1x/seconde (voir ScoreboardManager.update()).
+        scoreboardRefreshTask = getServer().getScheduler().runTaskTimer(this, () -> {
+            for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
+                if (scoreboardManager.estDansMondeActif(player.getWorld())) {
+                    scoreboardManager.update(player);
+                }
+            }
+        }, scoreboardManager.getIntervalleTicks(), scoreboardManager.getIntervalleTicks());
     }
 
     @Override
@@ -138,6 +160,9 @@ public class Plugin2 extends JavaPlugin {
         }
         if (hubWorldManager != null) {
             hubWorldManager.shutdown();
+        }
+        if (scoreboardRefreshTask != null) {
+            scoreboardRefreshTask.cancel();
         }
         if (database != null) {
             database.disconnect();
@@ -211,6 +236,8 @@ public class Plugin2 extends JavaPlugin {
 
     public ParkourManager getParkourManager() { return parkourManager; }
 
+    public ScoreboardManager getScoreboardManager() { return scoreboardManager; }
+
     // Petits "ponts" pour que CoinsCommand puisse accéder à la database
     // sans avoir à la connaître directement (juste via Plugin2)
     public Map<UUID, Double> getDatabaseAllBalances() {
@@ -238,7 +265,7 @@ public class Plugin2 extends JavaPlugin {
         upgradeManager.reloadAll();
         rankManager.reloadAll();
         parkourManager.reload();
-
+        scoreboardManager.reload();
         messagesManager.reload();
         petManager.reload();
         cosmeticManager.reload();
