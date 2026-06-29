@@ -46,10 +46,6 @@ public class HubCommand implements CommandExecutor {
         return true;
     }
     private void handleSetSpawn(CommandSender sender) {
-        if (!sender.hasPermission("plugin2.hub.reload")) {
-            messages.send(sender, "coins.permission-refusee-admin");
-            return;
-        }
         if (!sender.hasPermission("plugin2.hub.setspawn")) {
             messages.send(sender, "coins.permission-refusee-admin");
             return;
@@ -81,7 +77,7 @@ public class HubCommand implements CommandExecutor {
      * /plugin2 reload à la place.
      */
     private void handleReload(CommandSender sender) {
-        if (!sender.hasPermission("plugin2.admin")) {
+        if (!sender.hasPermission("plugin2.hub.reload")) {
             messages.send(sender, "coins.permission-refusee-admin");
             return;
         }
