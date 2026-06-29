@@ -18,7 +18,7 @@ public class Plugin2Command implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("plugin2.admin")) {
+        if (!sender.hasPermission("plugin2.reload")) {
             messages.send(sender, "coins.permission-refusee-admin");
             return true;
         }

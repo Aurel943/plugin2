@@ -38,7 +38,7 @@ public class ParkourRulesListener implements Listener {
     }
 
     private boolean estAdmin(Player player) {
-        return player.hasPermission("plugin2.admin");
+        return player.hasPermission("plugin2.parkour.build");
     }
 
     @EventHandler

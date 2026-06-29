@@ -67,7 +67,7 @@ public class CoinsCommand implements CommandExecutor {
 
         // CAS 2 : /coins <joueur> → un admin regarde le solde de quelqu'un d'autre
         if (!isKnownSubCommand(sousCommande)) {
-            if (!sender.hasPermission("plugin2.admin")) {
+            if (!sender.hasPermission("plugin2.coins.view-others")) {
                 messages.send(sender, "coins.permission-refusee-voir-solde");
                 return true;
             }
@@ -149,9 +149,15 @@ public class CoinsCommand implements CommandExecutor {
         ));
     }
 
-    // /coins give|take|set <joueur> <montant>  (admin uniquement)
+    // /coins give|take|set <joueur> <montant>  (permission dédiée par action)
     private void handleAdminOperation(CommandSender sender, String[] args, String action) {
-        if (!sender.hasPermission("plugin2.admin")) {
+        String permission = switch (action) {
+            case "give" -> "plugin2.coins.give";
+            case "take" -> "plugin2.coins.take";
+            case "set" -> "plugin2.coins.set";
+            default -> "plugin2.coins.give"; // ne devrait jamais arriver, sécurité par défaut
+        };
+        if (!sender.hasPermission(permission)) {
             messages.send(sender, "coins.permission-refusee-admin");
             return;
         }
@@ -218,9 +224,9 @@ public class CoinsCommand implements CommandExecutor {
         }
     }
 
-    // /coins reset → remet tous les soldes à 0 (admin uniquement)
+    // /coins reset → remet tous les soldes à 0
     private void handleReset(CommandSender sender) {
-        if (!sender.hasPermission("plugin2.admin")) {
+        if (!sender.hasPermission("plugin2.coins.reset")) {
             messages.send(sender, "coins.permission-refusee-admin");
             return;
         }
@@ -228,9 +234,9 @@ public class CoinsCommand implements CommandExecutor {
         messages.send(sender, "coins.reset.confirme");
     }
 
-    // /coins help → liste des commandes admin (admin uniquement)
+    // /coins help → liste des commandes admin
     private void handleHelp(CommandSender sender) {
-        if (!sender.hasPermission("plugin2.admin")) {
+        if (!sender.hasPermission("plugin2.coins.help")) {
             messages.send(sender, "coins.permission-refusee-admin");
             return;
         }

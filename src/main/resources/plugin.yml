@@ -15,25 +15,79 @@ commands:
   hub:
     description: Commandes administratives du hub (setspawn, reload).
     usage: /hub <setspawn | reload>
-    permission: plugin2.admin
   uuid:
     description: Affiche l'UUID d'un joueur
     usage: /uuid <pseudo>
-    permission: plugin2.admin
+    permission: plugin2.uuid
   plugin2:
     description: Recharge tous les caches du plugin depuis la base de données.
     usage: /plugin2 reload
-    permission: plugin2.admin
+    permission: plugin2.reload
   rank:
     description: Gère les ranks et leurs permissions.
     usage: /rank <create|delete|set|addperm|removeperm|list|info>
-    permission: plugin2.admin
+    permission: plugin2.rank.manage
   parkour:
     description: Classement des meilleurs temps du parkour.
     usage: /parkour top
 
 
 permissions:
-  plugin2.admin:
-    description: Donne accès aux commandes admin de l'économie (give, take, set, reset)
+  plugin2.*:
+    description: Donne accès à absolument toutes les fonctionnalités admin du plugin.
     default: op
+    children:
+      plugin2.coins.view-others: true
+      plugin2.coins.give: true
+      plugin2.coins.take: true
+      plugin2.coins.set: true
+      plugin2.coins.reset: true
+      plugin2.coins.help: true
+      plugin2.hub.setspawn: true
+      plugin2.hub.reload: true
+      plugin2.uuid: true
+      plugin2.reload: true
+      plugin2.rank.manage: true
+      plugin2.parkour.build: true
+
+  plugin2.coins.view-others:
+    description: Voir le solde de cristaux d'un autre joueur (/coins <pseudo>)
+    default: false
+  plugin2.coins.give:
+    description: Ajouter des cristaux à un joueur (/coins give)
+    default: false
+  plugin2.coins.take:
+    description: Retirer des cristaux à un joueur (/coins take)
+    default: false
+  plugin2.coins.set:
+    description: Définir le solde d'un joueur (/coins set)
+    default: false
+  plugin2.coins.reset:
+    description: Réinitialiser l'économie entière du serveur (/coins reset)
+    default: false
+  plugin2.coins.help:
+    description: Voir l'aide des commandes admin de l'économie (/coins help)
+    default: false
+
+  plugin2.hub.setspawn:
+    description: Définir le point de spawn du hub (/hub setspawn)
+    default: false
+  plugin2.hub.reload:
+    description: Recharger hub-rules.yml uniquement (/hub reload)
+    default: false
+
+  plugin2.uuid:
+    description: Voir l'UUID d'un joueur (/uuid)
+    default: false
+
+  plugin2.reload:
+    description: Recharger tous les caches du plugin depuis la base de données (/plugin2 reload)
+    default: false
+
+  plugin2.rank.manage:
+    description: Gérer les ranks et leurs permissions (/rank) — accès sensible, permet l'auto-promotion
+    default: false
+
+  plugin2.parkour.build:
+    description: Bâtir/casser/drop/pickup dans les mondes de parkour
+    default: false
