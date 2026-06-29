@@ -61,12 +61,19 @@ public class ScoreboardManager {
     // sa valeur a changé (évite tout scintillement et des appels Bukkit inutiles).
     private final Map<UUID, List<String>> dernierAffichage = new HashMap<>();
 
-    private final SimpleDateFormat formatHeure = new SimpleDateFormat("HH:mm");
+    private final SimpleDateFormat formatHeure;
 
     public ScoreboardManager(Plugin2 plugin) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.configFile = new File(plugin.getDataFolder(), "config/scoreboard.yml");
+
+        // Fuseau horaire explicite : sans ça, SimpleDateFormat utilise le fuseau
+        // par défaut de la JVM, qui peut être différent de l'heure réelle en
+        // France si le serveur est hébergé sur une machine configurée en UTC.
+        this.formatHeure = new SimpleDateFormat("HH:mm");
+        this.formatHeure.setTimeZone(java.util.TimeZone.getTimeZone("Europe/Paris"));
+
         load();
     }
 
