@@ -155,7 +155,7 @@ public class ScoreboardManager {
         Objective objective = scoreboard.getObjective(OBJECTIVE_ID);
         if (objective == null) return; // joueur sans notre scoreboard actif, on ignore
 
-        List<String> nouvellesLignes = construireLignes(player);
+        List<String> nouvellesLignes = construireLignesColorees(player);
         List<String> precedentes = dernierAffichage.get(player.getUniqueId());
 
         if (precedentes != null && precedentes.equals(nouvellesLignes)) {
@@ -196,6 +196,21 @@ public class ScoreboardManager {
         List<String> resultat = new ArrayList<>();
         for (String ligneBrute : lignesBrutes) {
             resultat.add(remplacerVariables(ligneBrute, variables));
+        }
+        return resultat;
+    }
+    /**
+     * Comme construireLignes(), mais convertit en plus les codes couleur
+     * "&" en codes couleur réels "§" avant de renvoyer chaque ligne — c'est
+     * cette version qui doit être utilisée pour l'AFFICHAGE (entrées du
+     * scoreboard), sinon le client Minecraft affiche le "&" littéralement
+     * au lieu d'appliquer la couleur (bug observé : "&fJoueur: &eElPepite94"
+     * affiché tel quel au lieu d'être coloré).
+     */
+    private List<String> construireLignesColorees(Player player) {
+        List<String> resultat = new ArrayList<>();
+        for (String ligne : construireLignes(player)) {
+            resultat.add(ChatColor.translateAlternateColorCodes('&', ligne));
         }
         return resultat;
     }
