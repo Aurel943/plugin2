@@ -18,7 +18,7 @@
 #
 # Pour ajouter un pet : copie un bloc existant, change la clé (ex: "renard"),
 # et ajuste les valeurs. Aucun redémarrage du serveur nécessaire si tu fais
-# /plugin2 reload (si la commande existe) — sinon redémarre le serveur.
+# /hub reload (si la commande existe) — sinon redémarre le serveur.
 
 pets:
 

@@ -132,18 +132,13 @@ hub:
     pas-dans-le-hub: "&cTu dois être dans le monde du hub pour définir son spawn."
     confirme: "&a&l✓ &aSpawn du hub défini à &e{x}, {y}, {z}&a."
   reload:
-    confirme: "&a&l✓ &ahub-rules.yml a été rechargé."
+    confirme: "&a&l✓ &aTout a été rechargé (hub-rules.yml et tous les caches depuis la base de données)."
 
 uuid:
   usage: "&cUsage: /uuid <pseudo>"
   joueur-inconnu: "&cAucun joueur trouvé avec le pseudo '{pseudo}'."
   resultat: "&aUUID de &f{pseudo} &a: &f{uuid}"
   resultat-prefixe: "&aUUID de &f{pseudo} &a: &f"
-
-plugin2:
-  usage: "&7Usage : &e/plugin2 reload"
-  reload:
-    confirme: "&a&l✓ &aTous les caches (économie, améliorations) ont été rechargés depuis la base de données."
 
 rank:
   usage: "&7Usage : &e/rank <create|delete|set|addperm|removeperm|list|info>"

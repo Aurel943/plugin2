@@ -2,7 +2,7 @@
 #  hub-rules.yml — Règles appliquées uniquement dans le monde du hub
 # =========================================================
 # Active (true) ou désactive (false) chaque règle indépendamment.
-# Modifiable à chaud avec /plugin2 reload (si la commande existe),
+# Modifiable à chaud avec /hub reload (si la commande existe),
 # sinon prend effet au redémarrage du serveur.
 # Chaque réglage / texte modifiable dans les class Java doivent pouvoir être modifié directement depuis les yml
 

@@ -1,9 +1,9 @@
-name: Plugin2
+name: Hub
 version: '1.0'
-main: org.example.plugin2.Plugin2
+main: fr.aurel943.hub.Hub
 api-version: '1.21'
 author: Aurelien
-description: Système d'économie avec les cristaux
+description: Plugin du serveur hub (économie en Cristaux, ranks, parkour, pets, cosmétiques)
 
 commands:
   bonjour:
@@ -13,81 +13,73 @@ commands:
     description: Gère ton solde de cristaux
     usage: /coins [pay|give|take|set|baltop|reset] [joueur] [montant]
   hub:
-    description: Commandes administratives du hub (setspawn, reload).
+    description: Commandes administratives du hub (setspawn, reload complet).
     usage: /hub <setspawn | reload>
   uuid:
     description: Affiche l'UUID d'un joueur
     usage: /uuid <pseudo>
-    permission: plugin2.uuid
-  plugin2:
-    description: Recharge tous les caches du plugin depuis la base de données.
-    usage: /plugin2 reload
-    permission: plugin2.reload
+    permission: hub.uuid
   rank:
     description: Gère les ranks et leurs permissions.
     usage: /rank <create|delete|set|addperm|removeperm|list|info>
-    permission: plugin2.rank.manage
+    permission: hub.rank.manage
   parkour:
     description: Classement des meilleurs temps du parkour.
     usage: /parkour top
 
 
 permissions:
-  plugin2.*:
+  hub.*:
     description: Donne accès à absolument toutes les fonctionnalités admin du plugin.
     default: op
     children:
-      plugin2.coins.view-others: true
-      plugin2.coins.give: true
-      plugin2.coins.take: true
-      plugin2.coins.set: true
-      plugin2.coins.reset: true
-      plugin2.coins.help: true
-      plugin2.hub.setspawn: true
-      plugin2.hub.reload: true
-      plugin2.uuid: true
-      plugin2.reload: true
-      plugin2.rank.manage: true
-      plugin2.parkour.build: true
+      hub.coins.view-others: true
+      hub.coins.give: true
+      hub.coins.take: true
+      hub.coins.set: true
+      hub.coins.reset: true
+      hub.coins.help: true
+      hub.setspawn: true
+      hub.reload: true
+      hub.uuid: true
+      hub.rank.manage: true
+      hub.parkour.build: true
 
-  plugin2.coins.view-others:
+  hub.coins.view-others:
     description: Voir le solde de cristaux d'un autre joueur (/coins <pseudo>)
     default: false
-  plugin2.coins.give:
+  hub.coins.give:
     description: Ajouter des cristaux à un joueur (/coins give)
     default: false
-  plugin2.coins.take:
+  hub.coins.take:
     description: Retirer des cristaux à un joueur (/coins take)
     default: false
-  plugin2.coins.set:
+  hub.coins.set:
     description: Définir le solde d'un joueur (/coins set)
     default: false
-  plugin2.coins.reset:
+  hub.coins.reset:
     description: Réinitialiser l'économie entière du serveur (/coins reset)
     default: false
-  plugin2.coins.help:
+  hub.coins.help:
     description: Voir l'aide des commandes admin de l'économie (/coins help)
     default: false
 
-  plugin2.hub.setspawn:
+  hub.setspawn:
     description: Définir le point de spawn du hub (/hub setspawn)
     default: false
-  plugin2.hub.reload:
-    description: Recharger hub-rules.yml uniquement (/hub reload)
+
+  hub.reload:
+    description: Recharger tous les caches ET hub-rules.yml depuis la base de données (/hub reload)
     default: false
 
-  plugin2.uuid:
+  hub.uuid:
     description: Voir l'UUID d'un joueur (/uuid)
     default: false
 
-  plugin2.reload:
-    description: Recharger tous les caches du plugin depuis la base de données (/plugin2 reload)
-    default: false
-
-  plugin2.rank.manage:
+  hub.rank.manage:
     description: Gérer les ranks et leurs permissions (/rank) — accès sensible, permet l'auto-promotion
     default: false
 
-  plugin2.parkour.build:
+  hub.parkour.build:
     description: Bâtir/casser/drop/pickup dans les mondes de parkour
     default: false
